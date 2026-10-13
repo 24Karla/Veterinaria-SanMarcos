@@ -1,6 +1,6 @@
 function Boton(){
     return(
-        <button className="btn btn-primary">Buscar</button>
+        <button className="btn btn-primary">aa</button>
     );
 }
 export default Boton;
