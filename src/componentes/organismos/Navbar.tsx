@@ -11,6 +11,18 @@ function Navbar() {
                     <Link className="nav-link text black" to="/servicios">
                         Servicios
                     </Link>
+                    <Link className="nav-link text black" to="/equipo">
+                        Equipo
+                    </Link>
+                    <Link className="nav-link text black" to="/contacto">
+                        Contacto
+                    </Link>
+                    <Link className="nav-link text black" to="/blog">
+                        Blog
+                    </Link>
+                    <Link className="nav-link text black" to="/tienda">
+                        Tienda
+                    </Link>
 
                 </div>
             </div>
