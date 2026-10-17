@@ -21,3 +21,4 @@ function FormularioSesion(){
         </form>
     )
 }
+export default FormularioSesion;
