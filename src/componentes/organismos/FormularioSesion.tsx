@@ -4,6 +4,7 @@ import { useState } from "react";
 function FormularioSesion(){
     const [correo, setCorreo] = useState("");
     const [contrasena, setContrasena] = useState("");
+    const [recordar, setRecordar] = useState(false);
 
     const manejarEnvio = (e: React.SubmitEvent<HTMLFormElement>)=> {
         e.preventDefault();
@@ -38,6 +39,18 @@ function FormularioSesion(){
                 valor={contrasena}
                 alCambiar={setContrasena}
             />
+            <div className="form-check mb-3">
+                <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="mantenerCuenta"
+                    checked={recordar}
+                    onChange={(e) => setRecordar(e.target.checked)}
+                />
+                <label className="form-check-label" htmlFor="mantenerCuenta">
+                    Recordar cuenta
+                </label>
+            </div>
 
             <button type="submit" className="btn btn-primary" style={{backgroundColor: "#d99a3e"}}>
                 Ingresar
