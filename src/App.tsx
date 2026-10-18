@@ -10,7 +10,7 @@ function App(){
       <Routes>
         <Route
           path="/login"
-          element={<Login/>}/>
+          element={<Login />}/>
 //aqui deberia seguir el resto de las rutas
       </Routes>
       <Footer />
