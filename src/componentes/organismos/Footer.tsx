@@ -2,9 +2,9 @@ import { Link } from "react-router-dom";
 
 function Footer() {
     return (
-        <footer className="bg-dark text-white pt-4 pb-2 mt-5" >
-            <div className="container">
-                <div className="row">
+        <footer className="text-white pt-4 pb-2 mt-5" style={{backgroundColor: "#063d2f"}} >
+            <div className="container py-4">
+                <div className="row g-4">
                     <div className="col-md-4 mb-3">
                         <Link to="/" className="navbar-brand marca d-flex align-items-center gap-2 fw-bold text-white">
                             <img
@@ -15,14 +15,14 @@ function Footer() {
                             />
                             <span>Veterinaria San Marcos</span>
                         </Link>
-                        <p className="text-white-50 mt-2 mb-0">
+                        <p className="text-white-50 mt-2 mb-0 fs-6">
                             Cuidando la salud de tus mascotas desde 2009 en Rancagua.
                         </p>
                     </div>
 
                     <div className="col-md-4 mb-3">
-                        <h5 className="text-warning">Horario</h5>
-                        <ul className="list-unstyled text-white-50 mb-0">
+                        <h3 className="fw-bold text-white mb-3">Horario</h3>
+                        <ul className="list-unstyled text-white-50 mb-0 fs-6">
                             <li>Lunes - Viernes: 13:30 - 19:30</li>
                             <li>Sábados: 9:00 - 13:00</li>
                             <li>Domingo: Cerrado</li>
@@ -30,8 +30,8 @@ function Footer() {
                     </div>
 
                     <div className="col-md-4 mb-3">
-                        <h5 className="text-warning">Contacto</h5>
-                        <ul className="list-unstyled text-white-50 mb-0">
+                        <h3 className="fw-bold text-white mb-3">Contacto</h3>
+                        <ul className="list-unstyled text-white-50 mb-0 fs-6">
                             <li>Av. Brasil 2140, Rancagua</li>
                             <li>+56 9 1234 5678</li>
                             <li>contacto@veterinariasanmarcos.cl</li>
