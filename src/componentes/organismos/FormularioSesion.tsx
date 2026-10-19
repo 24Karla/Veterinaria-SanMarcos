@@ -46,6 +46,7 @@ function FormularioSesion(){
                     id="mantenerCuenta"
                     checked={recordar}
                     onChange={(e) => setRecordar(e.target.checked)}
+                    style={{backgroundColor: recordar ? "#d99a3e" : "#fff", borderColor: recordar ? "#d99a3e" : "#ced4da",}}
                 />
                 <label className="form-check-label" htmlFor="mantenerCuenta">
                     Recordar cuenta
