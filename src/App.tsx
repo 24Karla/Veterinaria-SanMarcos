@@ -5,7 +5,7 @@ import { Routes, Route } from "react-router-dom";
 
 function App(){
   return(
-    <>
+    <div className="d-flex flex-column" style={{ minHeight: "100vh", backgroundColor: "#f5f0e8 " }}>
       <Navbar />
       <Routes>
         <Route
@@ -14,7 +14,7 @@ function App(){
 //aqui deberia seguir el resto de las rutas
       </Routes>
       <Footer />
-    </>
+    </div>
   )
 }
 export default App;
