@@ -1,3 +1,4 @@
+import Boton from '../atomos/Boton';
 
 export interface Producto {
   codigo: string;
@@ -11,13 +12,23 @@ export interface Producto {
   imagen: string;
 }
 
+export interface ProductoCarrito extends Producto {
+  cantidad: number;
+}
+
 interface CardTiendaProps {
   producto: Producto;
-  onVerDetalle?: (codigo: string) => void;
+  cantidad: number;
+  onAgregar: (producto: Producto) => void;
+  onCambiarCantidad: (codigo: string, cantidad: number) => void;
+  onVerDetalle: (producto: Producto) => void;
 }
 
 export default function CardTienda({
   producto,
+  cantidad,
+  onAgregar,
+  onCambiarCantidad,
   onVerDetalle,
 }: CardTiendaProps) {
   const precioFormateado = new Intl.NumberFormat('es-CL', {
@@ -29,59 +40,56 @@ export default function CardTienda({
   return (
     <article className="card-tienda h-100">
       <div className="card-tienda-imagen">
-        <img
-          src={producto.imagen}
-          alt={producto.nombre}
-          loading="lazy"
-        />
-        <span className="card-tienda-codigo">
-          {producto.codigo}
-        </span>
+        <img src={producto.imagen} alt={producto.nombre} loading="lazy" />
       </div>
 
       <div className="card-tienda-contenido">
-        <span className="card-tienda-categoria">
-          {producto.categoria}
-        </span>
-
+        <span className="card-tienda-categoria">{producto.categoria}</span>
         <h3>{producto.nombre}</h3>
-
-        <p className="card-tienda-principio">
-          {producto.principioActivo}
-        </p>
-
-        <p className="card-tienda-presentacion">
-          {producto.presentacion}
-        </p>
-
-        <p className="card-tienda-especie">
-          🐾 {producto.especie}
+        <p className="card-tienda-descripcion">
+          {producto.presentacion} · {producto.especie}
         </p>
 
         <div className="card-tienda-pie">
           <strong>{precioFormateado}</strong>
-
-          <span
-            className={
-              producto.stock > 0
-                ? 'stock-disponible'
-                : 'stock-agotado'
-            }
-          >
-            {producto.stock > 0
-              ? `${producto.stock} unidades`
-              : 'Sin stock'}
+          <span className={producto.stock > 0 ? 'stock-disponible' : 'stock-agotado'}>
+            {producto.stock > 0 ? `Stock: ${producto.stock}` : 'Sin stock'}
           </span>
         </div>
 
-        <button
+        <Boton
+          texto="Ver producto"
           type="button"
-          className="btn btn-tienda w-100 mt-3"
-          disabled={producto.stock === 0}
-          onClick={() => onVerDetalle?.(producto.codigo)}
-        >
-          Ver producto
-        </button>
+          className="btn btn-ver-producto w-100 mt-2"
+          onClick={() => onVerDetalle(producto)}
+        />
+
+        {cantidad === 0 ? (
+          <Boton
+            texto="Agregar al carrito"
+            type="button"
+            className="btn btn-tienda w-100 mt-3"
+            disabled={producto.stock === 0}
+            onClick={() => onAgregar(producto)}
+          />
+        ) : (
+          <div className="selector-cantidad mt-3" aria-label={`Cantidad de ${producto.nombre}`}>
+            <Boton
+              texto="−"
+              type="button"
+              className="btn btn-tienda"
+              onClick={() => onCambiarCantidad(producto.codigo, cantidad - 1)}
+            />
+            <span>{cantidad}</span>
+            <Boton
+              texto="+"
+              type="button"
+              className="btn btn-tienda"
+              disabled={cantidad >= producto.stock}
+              onClick={() => onCambiarCantidad(producto.codigo, cantidad + 1)}
+            />
+          </div>
+        )}
       </div>
     </article>
   );
