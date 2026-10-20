@@ -35,14 +35,14 @@ function Navbar() {
                     <Link
                         to="/login"
                         className="btn text-white text-nowrap"
-                        style={{ backgroundColor: "#d99a3e" }}
+                        style={{ backgroundColor: "#e8c746" }}
                     >
                         Iniciar sesión
                     </Link>
                     <Link
                         to="/reservar"
                         className="btn text-white text-nowrap"
-                        style={{ backgroundColor: "#d99a3e" }}
+                        style={{ backgroundColor: "#e8c746" }}
                     >
                         Reservar cita
                     </Link>
