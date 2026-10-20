@@ -46,14 +46,14 @@ function FormularioSesion(){
                     id="mantenerCuenta"
                     checked={recordar}
                     onChange={(e) => setRecordar(e.target.checked)}
-                    style={{backgroundColor: recordar ? "#d99a3e" : "#fff", borderColor: recordar ? "#d99a3e" : "#ced4da",}}
+                    style={{backgroundColor: recordar ? "#e8c746" : "#fff", borderColor: recordar ? "#e8c746" : "#ced4da",}}
                 />
                 <label className="form-check-label" htmlFor="mantenerCuenta">
                     Recordar cuenta
                 </label>
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{backgroundColor: "#d99a3e"}}>
+            <button type="submit" className="btn btn-primary" style={{backgroundColor: "#e8c746"}}>
                 Ingresar
             </button>
 
