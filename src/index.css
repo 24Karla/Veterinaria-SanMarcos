@@ -826,3 +826,16 @@ body {
     height: 85px;
   }
 }
+
+/* Reserva de citas */
+.pagina-cita { max-width: 760px; padding-top: 2.5rem; padding-bottom: 3rem; }
+.pagina-cita > h1 { margin: 1.25rem 0 0; color: #2b180d; font-size: clamp(1.9rem, 3vw, 2.7rem); font-weight: 900; letter-spacing: -0.07em; }
+.cita-subtitulo { margin: 0.45rem 0 1.75rem; color: #725f4d; }
+.formulario-cita { padding: 1.5rem; border-radius: 1.25rem; color: #2b180d; background: #fff; box-shadow: 0 8px 18px rgba(82, 55, 12, 0.08); }
+.formulario-cita h2 { margin: 0 0 1.25rem; font-size: 1.25rem; font-weight: 900; }
+.formulario-cita label { display: block; margin-bottom: 0.35rem; font-size: 0.9rem; font-weight: 700; }
+.formulario-cita .form-control, .formulario-cita .form-select { min-height: 46px; border-radius: 0.75rem; border-color: #e5d8c6; }
+.cita-confirmada { max-width: 540px; margin: 4rem auto; padding: 2rem; border-radius: 1.25rem; text-align: center; color: #2b180d; background: #fff; box-shadow: 0 8px 18px rgba(82, 55, 12, 0.08); }
+.cita-confirmada > span { display: grid; width: 3.5rem; height: 3.5rem; place-items: center; margin: 0 auto 1rem; border-radius: 50%; color: #2b180d; font-size: 2rem; font-weight: 900; background: #ffd224; }
+.cita-confirmada h1 { font-size: 2rem; font-weight: 900; }
+.cita-confirmada p { color: #725f4d; }

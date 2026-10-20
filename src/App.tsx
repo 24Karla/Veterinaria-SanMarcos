@@ -5,9 +5,10 @@ import type {
   ProductoCarrito,
 } from './organismos/CardTienda';
 import Carrito from './paginas/Carrito';
-import Productos from './paginas/Productos';
-import VerProducto from './paginas/VerProducto';
 import Pago from './paginas/Pago';
+import Productos from './paginas/Productos';
+import ReservarCita from './paginas/ReservarCita';
+import VerProducto from './paginas/VerProducto';
 
 function App() {
   const [carrito, setCarrito] = useState<ProductoCarrito[]>(() => {
@@ -115,6 +116,10 @@ function App() {
           >
             Carrito ({cantidadProductos})
           </button>
+
+          <button type="button" className="btn btn-link nav-link" onClick={() => setPagina('cita')}>
+            Reservar cita
+          </button>
         </div>
       </nav>
 
@@ -140,6 +145,8 @@ function App() {
           onIrProductos={() => setPagina('productos')}
           onFinalizar={finalizarPago}
         />
+      ) : pagina === 'cita' ? (
+        <ReservarCita onVolver={() => setPagina('productos')} />
       ) : (
         <Carrito
           carrito={carrito}

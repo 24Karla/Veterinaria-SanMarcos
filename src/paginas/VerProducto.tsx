@@ -1,3 +1,4 @@
+
 import Boton from '../atomos/Boton';
 import BotonVolver from '../atomos/BotonVolver';
 import type { Producto } from '../organismos/CardTienda';
@@ -17,11 +18,39 @@ export default function VerProducto({
   onCambiarCantidad,
   onVolver,
 }: VerProductoProps) {
-  const precio = new Intl.NumberFormat('es-CL', {
+  const {
+    codigo,
+    nombre,
+    imagen,
+    categoria,
+    principioActivo,
+    presentacion,
+    especie,
+    precio,
+    stock,
+  } = producto;
+
+  const precioFormateado = new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
     maximumFractionDigits: 0,
-  }).format(producto.precio);
+  }).format(precio);
+
+  const tieneStock = stock > 0;
+  const productoAgregado = cantidad > 0;
+  const puedeAgregar = cantidad < stock;
+
+  function agregarAlCarrito() {
+    onAgregar(producto);
+  }
+
+  function disminuirCantidad() {
+    onCambiarCantidad(codigo, cantidad - 1);
+  }
+
+  function aumentarCantidad() {
+    onCambiarCantidad(codigo, cantidad + 1);
+  }
 
   return (
     <main className="container pagina-detalle-producto">
@@ -29,44 +58,68 @@ export default function VerProducto({
 
       <article className="detalle-producto">
         <div className="detalle-producto-imagen">
-          <img src={producto.imagen} alt={producto.nombre} />
+          <img src={imagen} alt={nombre} />
         </div>
 
         <div className="detalle-producto-contenido">
-          <span className="card-tienda-categoria">{producto.categoria}</span>
-          <h1>{producto.nombre}</h1>
-          <p className="detalle-principio-activo">{producto.principioActivo}</p>
-          <p>{producto.presentacion} · {producto.especie}</p>
-          <p className={producto.stock > 0 ? 'stock-disponible' : 'stock-agotado'}>
-            {producto.stock > 0 ? `${producto.stock} unidades disponibles` : 'Sin stock'}
-          </p>
-          <strong className="detalle-precio">{precio}</strong>
+          <span className="card-tienda-categoria">
+            {categoria}
+          </span>
 
-          {cantidad === 0 ? (
-            <Boton
-              texto="Agregar al carrito"
-              type="button"
-              className="btn btn-tienda detalle-accion"
-              disabled={producto.stock === 0}
-              onClick={() => onAgregar(producto)}
-            />
-          ) : (
+          <h1>{nombre}</h1>
+
+          <p className="detalle-principio-activo">
+            {principioActivo}
+          </p>
+
+          <p>
+            {presentacion} · {especie}
+          </p>
+
+          <p
+            className={
+              tieneStock
+                ? 'stock-disponible'
+                : 'stock-agotado'
+            }
+          >
+            {tieneStock
+              ? `${stock} unidades disponibles`
+              : 'Sin stock'}
+          </p>
+
+          <strong className="detalle-precio">
+            {precioFormateado}
+          </strong>
+
+          {productoAgregado ? (
             <div className="selector-cantidad detalle-accion">
               <Boton
                 texto="−"
                 type="button"
                 className="btn btn-tienda"
-                onClick={() => onCambiarCantidad(producto.codigo, cantidad - 1)}
+                disabled={cantidad <= 0}
+                onClick={disminuirCantidad}
               />
+
               <span>{cantidad}</span>
+
               <Boton
                 texto="+"
                 type="button"
                 className="btn btn-tienda"
-                disabled={cantidad >= producto.stock}
-                onClick={() => onCambiarCantidad(producto.codigo, cantidad + 1)}
+                disabled={!puedeAgregar}
+                onClick={aumentarCantidad}
               />
             </div>
+          ) : (
+            <Boton
+              texto="Agregar al carrito"
+              type="button"
+              className="btn btn-tienda detalle-accion"
+              disabled={!tieneStock}
+              onClick={agregarAlCarrito}
+            />
           )}
         </div>
       </article>
