@@ -53,6 +53,86 @@ function Inicio() {
                                 >Consultas</Link>
                             </div>
                         </div>
+                        <div className="col-md-6 col-lg-3">
+                            <div
+                                className="card h-100 shadow-sm border-0 d-flex flex-column"
+                                style={{
+                                    backgroundImage: "url('/img/vacunacion.jpg')",
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                    minHeight: "220px"
+                                }}>
+                                <Link
+                                    to="/servicios"
+                                    className="btn text-white text-nowrap rounded-pill px-4 py-2 mt-auto mx-auto mb-3"
+                                    style={{ backgroundColor: "#e8c746" }}
+                                >Vacunación</Link>
+                            </div>
+                        </div>
+                        <div className="col-md-6 col-lg-3">
+                            <div
+                                className="card h-100 shadow-sm border-0 d-flex flex-column"
+                                style={{
+                                    backgroundImage: "url('/img/cirugia.jpg')",
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                    minHeight: "220px"
+                                }}>
+                                <Link
+                                    to="/servicios"
+                                    className="btn text-white text-nowrap rounded-pill px-4 py-2 mt-auto mx-auto mb-3"
+                                    style={{ backgroundColor: "#e8c746" }}
+                                >Cirugía</Link>
+                            </div>
+                        </div>
+                        <div className="col-md-6 col-lg-3">
+                            <div
+                                className="card h-100 shadow-sm border-0 d-flex flex-column"
+                                style={{
+                                    backgroundImage: "url('/img/desparasitación.jpg')",
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                    minHeight: "220px"
+                                }}>
+                                <Link
+                                    to="/servicios"
+                                    className="btn text-white text-nowrap rounded-pill px-4 py-2 mt-auto mx-auto mb-3"
+                                    style={{ backgroundColor: "#e8c746" }}
+                                >Desparasitación</Link>
+                            </div>
+                        </div>
+                        <div className="col-md-6 col-lg-6">
+                            <div
+                                className="card h-100 shadow-sm border-0 d-flex flex-column"
+                                style={{
+                                    backgroundImage: "url('/img/examenes.jpg')",
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                    minHeight: "220px"
+                                }}>
+                                <Link
+                                    to="/servicios"
+                                    className="btn text-white text-nowrap rounded-pill px-4 py-2 mt-auto mx-auto mb-3"
+                                    style={{ backgroundColor: "#e8c746" }}
+                                >Exanenes</Link>
+                            </div>
+                        </div>
+                        <div className="col-md-6 col-lg-6">
+                            <div
+                                className="card h-100 shadow-sm border-0 d-flex flex-column"
+                                style={{
+                                    backgroundImage: "url('/img/otro.jpg')",
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
+                                    minHeight: "220px"
+                                }}>
+                                <Link
+                                    to="/servicios"
+                                    className="btn text-white text-nowrap rounded-pill px-4 py-2 mt-auto mx-auto mb-3"
+                                    style={{ backgroundColor: "#e8c746" }}
+                                >Otros</Link>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
