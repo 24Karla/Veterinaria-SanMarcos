@@ -8,6 +8,7 @@ type Props = {
 function Input({tipo, nombre, valor, alCambiar}: Props){
     return(
         <input
+            id={nombre}
             type={tipo}
             name={nombre}
             className="form-control"
