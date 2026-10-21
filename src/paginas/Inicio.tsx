@@ -114,7 +114,7 @@ function Inicio() {
                                     to="/servicios"
                                     className="btn text-white text-nowrap rounded-pill px-4 py-2 mt-auto mx-auto mb-3"
                                     style={{ backgroundColor: "#e8c746" }}
-                                >Exanenes</Link>
+                                >Exámenes</Link>
                             </div>
                         </div>
                         <div className="col-md-6 col-lg-6">
