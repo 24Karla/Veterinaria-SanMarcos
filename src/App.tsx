@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 
@@ -7,6 +6,7 @@ import Navbar from './componentes/organismos/Navbar';
 
 import Inicio from './paginas/Inicio';
 import Login from './paginas/Login';
+import Servicios from './paginas/Servicios';
 
 import type {
   Producto,
@@ -34,6 +34,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Inicio />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/servicios" element={<Servicios />} /> 
           <Route path="/tienda/*" element={<RutaTienda />} />
         </Routes>
       </div>
