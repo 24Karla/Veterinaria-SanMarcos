@@ -1,7 +1,7 @@
 
-import Boton from '../atomos/Boton';
-import BotonVolver from '../atomos/BotonVolver';
-import type { Producto } from '../organismos/CardTienda';
+import Boton from '../componentes/atomos/Boton';
+import BotonVolver from '../componentes/atomos/BotonVolver';
+import type { Producto } from '../componentes/organismos/CardTienda';
 
 interface VerProductoProps {
   producto: Producto;

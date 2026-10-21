@@ -1,7 +1,7 @@
 
-import ItemCarrito from '../moleculas/ItemCarrito';
-import ResumenCarrito from '../moleculas/ResumenCarrito';
-import type { ProductoCarrito } from '../organismos/CardTienda';
+import type { ProductoCarrito } from '../componentes/organismos/CardTienda';
+import ItemCarrito from '../componentes/moleculas/ItemCarrito';
+import ResumenCarrito from '../componentes/moleculas/ResumenCarrito';
 
 interface CarritoProps {
   carrito: ProductoCarrito[];

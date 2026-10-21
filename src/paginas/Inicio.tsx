@@ -21,16 +21,16 @@ function Inicio() {
                         cirugías y farmacia.
                     </p>
                     <div className="d-flex gap-3 flex-wrap">
-                        <button className="btn btn-warning rounded-pill px-4 py-2" style={{ backgroundColor: "#e8c746" }}>
+                        <a href="#servicios" className="btn btn-warning rounded-pill px-4 py-2" style={{ backgroundColor: "#e8c746" }}>
                             Ver servicios
-                        </button>
-                        <button className="btn btn-light rounded-pill px-4 py-2">
+                        </a>
+                        <Link to="/tienda" className="btn btn-light rounded-pill px-4 py-2">
                             Ver productos
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>
-            <section className="py-5">
+            <section className="py-5" id="servicios">
                 <div className="container text-center mb-4">
                     <h2 className="fw-bold text-dark">Nuestros servicios</h2>
                     <p className="text-secondary">Todo lo que tu mascota necesita en un solo lugar</p>
@@ -47,7 +47,7 @@ function Inicio() {
                                     minHeight: "220px"
                                 }}>
                                 <Link
-                                    to="/servicios"
+                                    to="/#servicios"
                                     className="btn text-white text-nowrap rounded-pill px-4 py-2 mt-auto mx-auto mb-3"
                                     style={{ backgroundColor: "#e8c746" }}
                                 >Consultas</Link>
@@ -63,7 +63,7 @@ function Inicio() {
                                     minHeight: "220px"
                                 }}>
                                 <Link
-                                    to="/servicios"
+                                    to="/#servicios"
                                     className="btn text-white text-nowrap rounded-pill px-4 py-2 mt-auto mx-auto mb-3"
                                     style={{ backgroundColor: "#e8c746" }}
                                 >Vacunación</Link>
@@ -79,7 +79,7 @@ function Inicio() {
                                     minHeight: "220px"
                                 }}>
                                 <Link
-                                    to="/servicios"
+                                    to="/#servicios"
                                     className="btn text-white text-nowrap rounded-pill px-4 py-2 mt-auto mx-auto mb-3"
                                     style={{ backgroundColor: "#e8c746" }}
                                 >Cirugía</Link>
@@ -95,7 +95,7 @@ function Inicio() {
                                     minHeight: "220px"
                                 }}>
                                 <Link
-                                    to="/servicios"
+                                    to="/#servicios"
                                     className="btn text-white text-nowrap rounded-pill px-4 py-2 mt-auto mx-auto mb-3"
                                     style={{ backgroundColor: "#e8c746" }}
                                 >Desparasitación</Link>
@@ -111,7 +111,7 @@ function Inicio() {
                                     minHeight: "220px"
                                 }}>
                                 <Link
-                                    to="/servicios"
+                                    to="/#servicios"
                                     className="btn text-white text-nowrap rounded-pill px-4 py-2 mt-auto mx-auto mb-3"
                                     style={{ backgroundColor: "#e8c746" }}
                                 >Exanenes</Link>
@@ -127,7 +127,7 @@ function Inicio() {
                                     minHeight: "220px"
                                 }}>
                                 <Link
-                                    to="/servicios"
+                                    to="/#servicios"
                                     className="btn text-white text-nowrap rounded-pill px-4 py-2 mt-auto mx-auto mb-3"
                                     style={{ backgroundColor: "#e8c746" }}
                                 >Otros</Link>

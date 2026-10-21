@@ -1,96 +1,58 @@
-/* ==============================
-   1. ESTILOS GENERALES
-============================== */
+:root { font-family: "Trebuchet MS", "Segoe UI", sans-serif; color: #2b180d; background: #fffaf0; font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+* { box-sizing: border-box; }
+body { min-width: 320px; margin: 0; background: #fffaf0; }
+#root { min-height: 100vh; }
 
-:root {
-  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-  color: #2b180d;
-  background: #fffaf0;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-}
+/* Navegación y pie */
+.navbar-veterinaria { min-height: 72px; border-bottom: 1px solid #f0e5d6; background: #fff; }
+.navbar-veterinaria .navbar-brand, .navbar-veterinaria .nav-link { color: #2b180d; }
+.navbar-veterinaria .nav-link.active { color: #9a7100; }
+.logo-veterinaria { width: 40px; object-fit: contain; }
+.btn-tienda { border: 0; border-radius: .75rem; color: #2b180d; font-weight: 800; background: #ffd224; }
+.btn-tienda:hover, .btn-tienda:focus { color: #2b180d; background: #efbd00; }
+.btn-tienda:disabled { color: #806b51; background: #f5dfa0; opacity: 1; cursor: not-allowed; }
+.btn-carrito { display: grid; width: 42px; height: 42px; place-items: center; padding: 0; border: 1px solid #e5d8c6; border-radius: .75rem; color: #2b180d; background: #fff; }
+.btn-carrito svg { width: 21px; height: 21px; }
+.btn-carrito:hover, .btn-carrito:focus { border-color: #ffd224; background: #ffebad; }
+.btn-volver-tienda, .btn-ver-producto { border: 1px solid #e5d8c6; border-radius: .75rem; color: #2b180d; font-weight: 800; background: #fff; }
+.btn-volver-tienda:hover, .btn-ver-producto:hover { border-color: #ffd224; color: #2b180d; background: #ffebad; }
+footer { margin-top: auto !important; background: #063d2f !important; }
 
-* {
-  box-sizing: border-box;
-}
+/* Inicio */
+#servicios .card { overflow: hidden; border-radius: 1.5rem; box-shadow: 0 10px 20px rgba(82,55,12,.08) !important; transition: transform .3s, box-shadow .3s; }
+#servicios .card:hover { transform: translateY(-5px); box-shadow: 0 18px 32px rgba(82,55,12,.16) !important; }
+#servicios .card .btn { color: #fff; font-weight: 800; }
 
-body {
-  min-width: 320px;
-  margin: 0;
-  background: #fffaf0;
-}
+/* Catálogo */
+.tienda-portada { max-width: 1180px; margin: 0 auto; padding: 2.75rem 12px 1.25rem; }
+.tienda-etiqueta, .catalogo-titulo { display: none; }
+.tienda-portada h2, .pagina-carrito > h1, .pagina-pago > h1, .pagina-cita > h1 { margin: 0; color: #2b180d; font-size: clamp(1.9rem, 3vw, 2.7rem); font-weight: 900; letter-spacing: -.08em; }
+.tienda-portada p, .pagina-carrito > p, .pago-subtitulo, .cita-subtitulo { margin: .45rem 0 0; color: #725f4d; }
+.seccion-catalogo { max-width: 1180px; padding-top: .75rem; padding-bottom: 3rem; }
+.seccion-catalogo > .row.g-3 { --bs-gutter-x: .75rem; --bs-gutter-y: 0; align-items: center; margin: 0 0 2rem; padding: 1rem; border-radius: 1.5rem; background: #ffd224; }
+.seccion-catalogo .form-label { display: none; }
+.seccion-catalogo .form-control, .seccion-catalogo .form-select { height: 54px; padding: 0 1.15rem; border: 2px solid #eee6dc; border-radius: 1.1rem; box-shadow: none; }
+.seccion-catalogo .form-control:focus, .seccion-catalogo .form-select:focus { border-color: #b78300; box-shadow: 0 0 0 .2rem rgba(183,131,0,.18); }
+.card-tienda { display: flex; height: 100%; flex-direction: column; overflow: hidden; border: 0; border-radius: 1.5rem; background: #fff; box-shadow: 0 10px 20px rgba(82,55,12,.08); transition: transform .3s, box-shadow .3s; }
+.card-tienda:hover { transform: translateY(-5px); box-shadow: 0 18px 32px rgba(82,55,12,.16); }
+.card-tienda-imagen { display: grid; height: 220px; place-items: center; padding: .75rem; overflow: hidden; background: #fff; }
+.card-tienda-imagen img { width: 100%; height: 100%; object-fit: contain; transition: transform .4s; }
+.card-tienda:hover .card-tienda-imagen img { transform: scale(1.05); }
+.card-tienda-contenido { display: flex; flex-grow: 1; flex-direction: column; padding: 1.2rem; color: #2b180d; }
+.card-tienda-categoria { align-self: flex-start; padding: .35rem .8rem; border-radius: 99px; font-size: .8rem; font-weight: 700; background: #ffebad; }
+.card-tienda-contenido h3 { margin: .85rem 0 .5rem; font-size: 1.25rem; font-weight: 900; letter-spacing: -.04em; }
+.card-tienda-descripcion { margin: 0; color: #725f4d; font-size: .9rem; }
+.card-tienda-pie { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: 1rem; }
+.card-tienda-pie strong { font-size: 1.35rem; }
+.stock-disponible { color: #725f4d; font-weight: 700; }.stock-agotado { color: #c83c32; font-weight: 700; }
+.selector-cantidad { display: flex; justify-content: center; align-items: center; gap: 1rem; margin-top: 1rem; }.selector-cantidad span { min-width: 24px; text-align: center; font-weight: 800; }.selector-cantidad .btn-tienda { width: 42px; height: 42px; margin: 0; padding: 0; border-radius: 50%; }
 
-#root {
-  min-height: 100vh;
-}
+/* Carrito, pago y detalle */
+.pagina-carrito, .pagina-pago, .pagina-cita { max-width: 960px; padding-top: 2.5rem; padding-bottom: 3rem; }
+.carrito-contenido, .pago-contenido { display: grid; grid-template-columns: minmax(0,1.6fr) minmax(260px,.75fr); gap: 1.5rem; margin-top: 2rem; align-items: start; }
+.item-carrito, .resumen-carrito, .pago-formulario, .pago-resumen, .formulario-cita, .detalle-producto, .pago-confirmado, .pago-vacio, .cita-confirmada { border-radius: 1.25rem; background: #fff; box-shadow: 0 8px 18px rgba(82,55,12,.08); }
+.item-carrito { display: flex; gap: 1.25rem; padding: 1rem; margin-bottom: .9rem; }.item-carrito-imagen { width: 120px; height: 120px; padding: .5rem; border-radius: .9rem; background: #fffaf0; object-fit: contain; }.item-carrito-info { flex: 1; }.item-carrito-info h3 { margin: 0; font-size: 1.15rem; font-weight: 900; }.item-carrito-info p { margin: .35rem 0; color: #725f4d; }.item-carrito-cantidad { display:flex; align-items:center; gap:.7rem; margin:.75rem 0; }.btn-cantidad-carrito { width: 2rem; height: 2rem; padding: 0; border: 1px solid #e5d8c6; border-radius: 50%; color:#2b180d; background:#ffebad; font-weight: 900; }.btn-cantidad-carrito:disabled { color:#806b51; background:#f5dfa0; opacity:1; }.btn-eliminar { padding: 0; border: 0; color: #b42318; font-size: .85rem; font-weight: 800; text-decoration: underline; background: transparent; }.btn-eliminar:hover, .btn-eliminar:focus { color:#8d1b12; background:transparent; }.resumen-carrito { position: sticky; top: 1rem; padding: 1.5rem; }.resumen-carrito h2 { font-size: 1.3rem; font-weight: 900; }.resumen-carrito-total, .pago-total { display:flex; justify-content:space-between; gap:1rem; margin-top: 1rem; padding-top:1rem; border-top: 1px solid #f0e5d6; font-size:1.1rem; }.carrito-vacio { padding:2.5rem 1.5rem; border: 2px dashed #e8c746; border-radius:1.25rem; text-align:center; color:#725f4d; }
+.detalle-producto { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:1.5rem; padding:2rem; }.detalle-producto-imagen { display:grid; min-height:360px; place-items:center; padding:1.5rem; border-radius:1rem; background:#fff; }.detalle-producto-imagen img { width:100%; max-height:340px; object-fit:contain; }.detalle-producto-contenido { display:flex; flex-direction:column; justify-content:center; }.detalle-producto-contenido h1 { margin:1rem 0 .5rem; font-size:clamp(1.8rem,4vw,2.6rem); font-weight:900; letter-spacing:-.06em; }.detalle-producto-contenido p { color:#725f4d; }.detalle-principio-activo { color:#2b180d !important; font-weight:700; }.detalle-precio { margin-top:1rem; font-size:2rem; }.detalle-accion { width:100%; margin-top:1.5rem; }
+.pago-subtitulo, .cita-subtitulo { margin-bottom:1.75rem; }.pago-formulario, .pago-resumen, .formulario-cita { padding:1.5rem; }.pago-formulario h2, .pago-resumen h2, .formulario-cita h2 { margin:0 0 1.25rem; font-size:1.25rem; font-weight:900; }.pago-formulario label, .formulario-cita label { display:block; margin:.9rem 0 .35rem; font-size:.9rem; font-weight:700; }.pago-formulario .form-control, .pago-formulario .form-select, .formulario-cita .form-control, .formulario-cita .form-select { min-height:46px; border-radius:.75rem; border-color:#e5d8c6; }.pago-item { display:flex; justify-content:space-between; gap:1rem; padding:.65rem 0; color:#725f4d; border-bottom:1px solid #f0e5d6; }.pago-confirmado, .pago-vacio, .cita-confirmada { max-width:540px; margin:4rem auto; padding:2rem; text-align:center; }.pago-confirmado > span, .cita-confirmada > span { display:grid; width:3.5rem; height:3.5rem; place-items:center; margin:0 auto 1rem; border-radius:50%; font-size:2rem; font-weight:900; background:#ffd224; }
 
-
-/* ==============================
-   2. PORTADA DE LA TIENDA
-============================== */
-
-.tienda-portada {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 2.75rem 12px 1.25rem;
-}
-
-.tienda-etiqueta,
-.catalogo-titulo {
-  display: none;
-}
-
-.tienda-portada h2 {
-  margin: 0;
-  color: #2b180d;
-  font-size: clamp(1.9rem, 3vw, 2.7rem);
-  font-weight: 900;
-  letter-spacing: -0.08em;
-}
-
-.tienda-portada p {
-  margin: 0.45rem 0 0;
-  color: #725f4d;
-  font-size: 1rem;
-}
-
-
-/* ==============================
-   3. SECCIÓN DEL CATÁLOGO
-============================== */
-
-/* Contenedor */
-
-.seccion-catalogo {
-  max-width: 1180px;
-  padding-top: 0.75rem;
-  padding-bottom: 3rem;
-}
-
-/* Barra de búsqueda y filtros */
-
-.seccion-catalogo > .row.g-3 {
-  --bs-gutter-x: 0.75rem;
-  --bs-gutter-y: 0;
-
-  align-items: center;
-  margin: 0 0 2rem;
-  padding: 1rem;
-  border-radius: 1.5rem;
-  background: #ffd224;
-}
-
-.seccion-catalogo .form-label {
-  display: none;
-}
-
-/* Campos de búsqueda y selección */
-
-.seccion-catalogo .form-control,
-.seccion-catalogo .form-select {
-  height: 54px;
-  padding: 0 1.15rem;
-  border: 2px solid #eee6dc;
-  border-radius: 1.1rem;
-}
+@media (max-width: 767px) { .navbar-veterinaria .navbar-nav { padding-top:.5rem; }.tienda-portada { padding-top:2rem; }.seccion-catalogo > .row.g-3 { padding:1rem; }.card-tienda-imagen { height:210px; }.carrito-contenido, .pago-contenido, .detalle-producto { grid-template-columns:1fr; }.detalle-producto { padding:1.25rem; gap:1.25rem; }.detalle-producto-imagen { min-height:260px; }.item-carrito { gap:.75rem; padding:.75rem; }.item-carrito-imagen { width:85px; height:85px; } }

@@ -1,11 +1,11 @@
 
 import { useMemo, useState } from 'react';
-import Boton from '../atomos/Boton';
+import Boton from '../componentes/atomos/Boton';
 import type {
   Producto,
   ProductoCarrito,
-} from '../organismos/CardTienda';
-import CardTienda from '../organismos/CardTienda';
+} from '../componentes/organismos/CardTienda';
+import CardTienda from '../componentes/organismos/CardTienda';
 
 const productos: Producto[] = [
   {

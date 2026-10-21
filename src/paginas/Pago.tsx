@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import type { ProductoCarrito } from '../organismos/CardTienda';
+import type { ProductoCarrito } from '../componentes/organismos/CardTienda';
 
 interface PagoProps {
   carrito: ProductoCarrito[];

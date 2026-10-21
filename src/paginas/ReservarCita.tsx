@@ -1,6 +1,6 @@
 
 import { useState, type FormEvent } from 'react';
-import BotonVolver from '../atomos/BotonVolver';
+import BotonVolver from '../componentes/atomos/BotonVolver';
 
 interface Props {
   onVolver: () => void;

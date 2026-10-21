@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router-dom';
 
 import Footer from './componentes/organismos/Footer';
 import Navbar from './componentes/organismos/Navbar';
@@ -11,7 +11,7 @@ import Login from './paginas/Login';
 import type {
   Producto,
   ProductoCarrito,
-} from './organismos/CardTienda';
+} from './componentes/organismos/CardTienda';
 
 import Carrito from './paginas/Carrito';
 import Pago from './paginas/Pago';
@@ -34,7 +34,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Inicio />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/tienda/*" element={<Tienda />} />
+          <Route path="/tienda/*" element={<RutaTienda />} />
         </Routes>
       </div>
 
@@ -43,7 +43,20 @@ function App() {
   );
 }
 
-function Tienda() {
+type PaginaTienda = 'productos' | 'carrito' | 'cita' | 'detalle' | 'pago';
+
+function RutaTienda() {
+  const { search } = useLocation();
+  const paginaSolicitada = new URLSearchParams(search).get('pagina');
+  const paginaInicial: PaginaTienda =
+    paginaSolicitada === 'carrito' || paginaSolicitada === 'cita'
+      ? paginaSolicitada
+      : 'productos';
+
+  return <Tienda key={search} paginaInicial={paginaInicial} />;
+}
+
+function Tienda({ paginaInicial }: { paginaInicial: PaginaTienda }) {
   const [carrito, setCarrito] = useState<ProductoCarrito[]>(() => {
     try {
       const guardado = localStorage.getItem('carrito-veterinaria');
@@ -53,7 +66,7 @@ function Tienda() {
     }
   });
 
-  const [pagina, setPagina] = useState('productos');
+  const [pagina, setPagina] = useState<PaginaTienda>(paginaInicial);
   const [productoSeleccionado, setProductoSeleccionado] =
     useState<Producto | null>(null);
 
@@ -129,41 +142,8 @@ function Tienda() {
     setCarrito([]);
   }
 
-  const cantidadProductos = carrito.reduce(
-    (total, producto) => total + producto.cantidad,
-    0
-  );
-
   return (
     <>
-      <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
-        <div className="container py-2">
-          <button
-            type="button"
-            className="btn btn-link nav-link"
-            onClick={() => setPagina('productos')}
-          >
-            Productos
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-link nav-link"
-            onClick={() => setPagina('carrito')}
-          >
-            Carrito ({cantidadProductos})
-          </button>
-
-          <button
-            type="button"
-            className="btn btn-link nav-link"
-            onClick={() => setPagina('cita')}
-          >
-            Reservar cita
-          </button>
-        </div>
-      </nav>
-
       {pagina === 'productos' ? (
         <Productos
           onVerDetalle={verDetalle}
