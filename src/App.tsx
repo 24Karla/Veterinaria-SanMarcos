@@ -1,9 +1,18 @@
 
 import { useEffect, useState } from 'react';
+import { Route, Routes } from 'react-router-dom';
+
+import Footer from './componentes/organismos/Footer';
+import Navbar from './componentes/organismos/Navbar';
+
+import Inicio from './paginas/Inicio';
+import Login from './paginas/Login';
+
 import type {
   Producto,
   ProductoCarrito,
 } from './organismos/CardTienda';
+
 import Carrito from './paginas/Carrito';
 import Pago from './paginas/Pago';
 import Productos from './paginas/Productos';
@@ -11,10 +20,33 @@ import ReservarCita from './paginas/ReservarCita';
 import VerProducto from './paginas/VerProducto';
 
 function App() {
+  return (
+    <div
+      className="d-flex flex-column"
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#f5f0e8',
+      }}
+    >
+      <Navbar />
+
+      <div className="flex-grow-1">
+        <Routes>
+          <Route path="/" element={<Inicio />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/tienda/*" element={<Tienda />} />
+        </Routes>
+      </div>
+
+      <Footer />
+    </div>
+  );
+}
+
+function Tienda() {
   const [carrito, setCarrito] = useState<ProductoCarrito[]>(() => {
     try {
       const guardado = localStorage.getItem('carrito-veterinaria');
-
       return guardado ? JSON.parse(guardado) : [];
     } catch {
       return [];
@@ -22,7 +54,8 @@ function App() {
   });
 
   const [pagina, setPagina] = useState('productos');
-  const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
+  const [productoSeleccionado, setProductoSeleccionado] =
+    useState<Producto | null>(null);
 
   useEffect(() => {
     localStorage.setItem(
@@ -38,6 +71,10 @@ function App() {
       );
 
       if (existe) {
+        if (producto.stock <= 0) {
+          return actual;
+        }
+
         return actual.map((item) =>
           item.codigo === producto.codigo
             ? {
@@ -117,7 +154,11 @@ function App() {
             Carrito ({cantidadProductos})
           </button>
 
-          <button type="button" className="btn btn-link nav-link" onClick={() => setPagina('cita')}>
+          <button
+            type="button"
+            className="btn btn-link nav-link"
+            onClick={() => setPagina('cita')}
+          >
             Reservar cita
           </button>
         </div>
@@ -133,7 +174,12 @@ function App() {
       ) : pagina === 'detalle' && productoSeleccionado ? (
         <VerProducto
           producto={productoSeleccionado}
-          cantidad={carrito.find((item) => item.codigo === productoSeleccionado.codigo)?.cantidad ?? 0}
+          cantidad={
+            carrito.find(
+              (item) =>
+                item.codigo === productoSeleccionado.codigo
+            )?.cantidad ?? 0
+          }
           onAgregar={agregarProducto}
           onCambiarCantidad={cambiarCantidad}
           onVolver={() => setPagina('productos')}
@@ -146,7 +192,9 @@ function App() {
           onFinalizar={finalizarPago}
         />
       ) : pagina === 'cita' ? (
-        <ReservarCita onVolver={() => setPagina('productos')} />
+        <ReservarCita
+          onVolver={() => setPagina('productos')}
+        />
       ) : (
         <Carrito
           carrito={carrito}
