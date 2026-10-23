@@ -200,6 +200,15 @@ export default function PerfilCliente({ sesion }: PerfilClienteProps) {
           </div>
           <Link className="btn btn-volver-tienda" to="/perfil/cliente/historial">Ver historial completo</Link>
         </article>
+
+        <article className="perfil-tarjeta">
+          <div className="perfil-titulo"><span>🛍️</span><h2>Mis compras</h2></div>
+          <div className="perfil-lista">
+            <div><strong>Pedido #1024</strong><span>20 de octubre de 2026 · $11.000 · Entregado</span></div>
+            <div><strong>Pedido #1008</strong><span>5 de octubre de 2026 · $9.500 · Entregado</span></div>
+          </div>
+          <Link className="btn btn-volver-tienda" to="/perfil/cliente/compras">Ver historial de compras</Link>
+        </article>
       </section>
     </main>
   );

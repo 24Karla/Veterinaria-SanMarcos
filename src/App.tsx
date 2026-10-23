@@ -7,6 +7,7 @@ import Navbar from './componentes/organismos/Navbar';
 
 import Inicio from './paginas/Inicio';
 import HistorialCliente from './paginas/HistorialCliente';
+import HistorialCompras from './paginas/HistorialCompras';
 import Login from './paginas/Login';
 import MisCitas from './paginas/MisCitas';
 import PaginaGestion from './paginas/PaginaGestion';
@@ -104,6 +105,14 @@ function App() {
             element={
               <PerfilProtegido sesion={sesion} rol="cliente">
                 {() => <HistorialCliente />}
+              </PerfilProtegido>
+            }
+          />
+          <Route
+            path="/perfil/cliente/compras"
+            element={
+              <PerfilProtegido sesion={sesion} rol="cliente">
+                {() => <HistorialCompras />}
               </PerfilProtegido>
             }
           />
