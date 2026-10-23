@@ -372,6 +372,17 @@ footer {
   margin: 0;
   color: #725f4d;
 }
+.registro-detalle {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: .25rem;
+  padding-top: .85rem;
+  border-top: 1px solid #f0e5d6;
+  color: #725f4d;
+}
+.registro-detalle strong {
+  color: #2b180d;
+}
 .detalle-registro {
   margin-top: 1rem;
   padding: 1.25rem;
