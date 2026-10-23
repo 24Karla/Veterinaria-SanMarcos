@@ -223,21 +223,11 @@ footer {
   grid-column: span 2;
   min-height: 155px;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 1rem;
   padding: 1.1rem 1.35rem;
   background: linear-gradient(120deg, #fff 20%, #fff5cb);
-}
-
-.perfil-icono {
-  display: grid;
-  width: 3.35rem;
-  height: 3.35rem;
-  place-items: center;
-  border-radius: 50%;
-  font-size: 1.5rem;
-  background: #ffd224;
 }
 
 .perfil-tarjeta h2 {
@@ -257,10 +247,6 @@ footer {
   gap: .6rem;
   margin-bottom: 1rem;
 }
-.perfil-titulo > span {
-  font-size: 1.35rem;
-}
-
 .perfil-lista {
   display: grid;
   gap: .75rem;
@@ -384,6 +370,23 @@ footer {
 }
 .registro-cita p {
   margin: 0;
+  color: #725f4d;
+}
+.detalle-registro {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(82,55,12,.08);
+}
+.detalle-registro h2 {
+  margin: 0 0 .4rem;
+  color: #2b180d;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+.detalle-registro p {
+  margin: 0 0 1rem;
   color: #725f4d;
 }
 .registro-estado {
