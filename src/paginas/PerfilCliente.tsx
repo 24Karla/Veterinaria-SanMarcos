@@ -84,7 +84,6 @@ export default function PerfilCliente({ sesion }: PerfilClienteProps) {
 
       <section className="perfil-grid">
         <article className="perfil-tarjeta perfil-tarjeta-destacada">
-          <span className="perfil-icono">👤</span>
           <div>
             <h2>Mi perfil</h2>
             <p>{perfil.correo}</p>
@@ -134,7 +133,7 @@ export default function PerfilCliente({ sesion }: PerfilClienteProps) {
         </article>
 
         <article className="perfil-tarjeta">
-          <div className="perfil-titulo"><span>🐾</span><h2>Mis mascotas</h2></div>
+          <div className="perfil-titulo"><h2>Mis mascotas</h2></div>
           <div className="perfil-lista">
             {mascotas.map((mascota) => (
               <div key={mascota.nombre}>
@@ -183,7 +182,7 @@ export default function PerfilCliente({ sesion }: PerfilClienteProps) {
         </article>
 
         <article className="perfil-tarjeta">
-          <div className="perfil-titulo"><span>📅</span><h2>Próximas citas</h2></div>
+          <div className="perfil-titulo"><h2>Próximas citas</h2></div>
           <div className="perfil-cita">
             <strong>Consulta general · Luna</strong>
             <span>28 de octubre · 11:00 hrs</span>
@@ -193,7 +192,7 @@ export default function PerfilCliente({ sesion }: PerfilClienteProps) {
         </article>
 
         <article className="perfil-tarjeta">
-          <div className="perfil-titulo"><span>📋</span><h2>Historial veterinario</h2></div>
+          <div className="perfil-titulo"><h2>Historial veterinario</h2></div>
           <div className="perfil-lista">
             <div><strong>Vacunación anual</strong><span>Luna · 12 de septiembre de 2026</span></div>
             <div><strong>Control general</strong><span>Milo · 4 de agosto de 2026</span></div>
@@ -202,7 +201,7 @@ export default function PerfilCliente({ sesion }: PerfilClienteProps) {
         </article>
 
         <article className="perfil-tarjeta">
-          <div className="perfil-titulo"><span>🛍️</span><h2>Mis compras</h2></div>
+          <div className="perfil-titulo"><h2>Mis compras</h2></div>
           <div className="perfil-lista">
             <div><strong>Pedido #1024</strong><span>20 de octubre de 2026 · $11.000 · Entregado</span></div>
             <div><strong>Pedido #1008</strong><span>5 de octubre de 2026 · $9.500 · Entregado</span></div>
