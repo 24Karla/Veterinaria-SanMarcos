@@ -1,12 +1,20 @@
 import FormularioSesion from "../componentes/organismos/FormularioSesion";
 
-function Login() {
+interface LoginProps {
+    onLogin: (sesion: {
+        nombre: string;
+        correo: string;
+        rol: 'cliente' | 'veterinario' | 'administrador';
+    }) => void;
+}
+
+function Login({ onLogin }: LoginProps) {
     return (
         <div className="container mt-5">
             <div className="row shadow-sm rounded-4 overflow-hidden">
                 <div className="col-md-6 p-4 p-md-5 bg-white">
-                    <h2 className="mb-4">Inicio de sesión</h2>
-                    <FormularioSesion />
+                    <h2 className="titulo-login mb-4">Inicio de sesión</h2>
+                    <FormularioSesion onLogin={onLogin} />
                 </div>
                 <div className="col-md-6 d-none d-md-block">
                     <img

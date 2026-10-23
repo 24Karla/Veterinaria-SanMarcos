@@ -1,30 +1,55 @@
 import CampoSesion from "../moleculas/CampoSesion";
 import { useState } from "react";
 
-function FormularioSesion(){
+interface FormularioSesionProps {
+    onLogin: (sesion: {
+        nombre: string;
+        correo: string;
+        rol: 'cliente' | 'veterinario' | 'administrador';
+    }) => void;
+}
+
+function FormularioSesion({ onLogin }: FormularioSesionProps){
     const [correo, setCorreo] = useState("");
     const [contrasena, setContrasena] = useState("");
     const [recordar, setRecordar] = useState(false);
+    const [error, setError] = useState("");
 
     const manejarEnvio = (e: React.SubmitEvent<HTMLFormElement>)=> {
         e.preventDefault();
 
         if(correo.trim() === ""){
-            alert("Debe ingresar su correo");
+            setError("Debe ingresar su correo.");
             return;
         }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){
-            alert("Ingrese un correo válido");
+            setError("Ingresa un correo válido.");
             return;
         }
         if (contrasena.trim()===""){
-            alert("Debe ingresar una contraseña");
+            setError("Debe ingresar una contraseña.");
             return;
         }
-        alert("Inicio de sesión completado")
+
+        const cuentas = {
+            'sofia@gmail.com': { nombre: 'Sofía', rol: 'cliente' as const },
+            'fabian@vetsanmarcos.cl': { nombre: 'Fabián', rol: 'veterinario' as const },
+            'admin@vetsanmarcos.cl': { nombre: 'Administrador', rol: 'administrador' as const },
+        };
+        const cuenta = cuentas[correo.trim().toLowerCase() as keyof typeof cuentas];
+
+        if (!cuenta || contrasena !== '1234') {
+            setError('El correo o la contraseña no corresponden a una cuenta de prueba.');
+            return;
+        }
+
+        setError("");
+        onLogin({ nombre: cuenta.nombre, correo: correo.trim().toLowerCase(), rol: cuenta.rol });
     };
     return (
         <form onSubmit={manejarEnvio} noValidate>
+            {error && <div className="alert alert-warning" role="alert">{error}</div>}
+
             <CampoSesion
                 etiqueta="Correo electrónico"
                 tipo="email"
@@ -39,6 +64,12 @@ function FormularioSesion(){
                 valor={contrasena}
                 alCambiar={setContrasena}
             />
+            <section className="cuentas-prueba" aria-label="Cuentas de prueba">
+                <h3>Ingresa con una de estas cuentas</h3>
+                <p><strong>Cliente:</strong> sofia@gmail.com <span>· Clave: 1234</span></p>
+                <p><strong>Veterinario:</strong> fabian@vetsanmarcos.cl <span>· Clave: 1234</span></p>
+                <p><strong>Administrador:</strong> admin@vetsanmarcos.cl <span>· Clave: 1234</span></p>
+            </section>
             <div className="form-check mb-3">
                 <input
                     className="form-check-input"
@@ -53,9 +84,10 @@ function FormularioSesion(){
                 </label>
             </div>
 
-            <button type="submit" className="btn btn-primary" style={{backgroundColor: "#e8c746"}}>
+            <button type="submit" className="btn btn-tienda w-100">
                 Ingresar
             </button>
+
 
         </form>
     );

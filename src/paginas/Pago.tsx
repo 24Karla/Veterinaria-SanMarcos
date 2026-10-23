@@ -65,10 +65,21 @@ export default function Pago({ carrito, onVolver, onIrProductos, onFinalizar }: 
         <section className="pago-confirmado">
           <span>✓</span>
           <h1>¡Compra realizada!</h1>
-          <p>Enviaremos la confirmación a {datos.correo}.</p>
-          <strong>{formatoPrecio(totalPagado)}</strong>
-          <button type="button" className="btn btn-tienda" onClick={onIrProductos}>
-            Volver a productos
+          <p className="pago-confirmado-mensaje">
+            Enviaremos la confirmación a <strong>{datos.correo}</strong>.
+          </p>
+
+          <div className="pago-confirmado-total">
+            <span>Total pagado</span>
+            <strong>{formatoPrecio(totalPagado)}</strong>
+          </div>
+
+          <button
+            type="button"
+            className="btn btn-tienda pago-confirmado-accion"
+            onClick={onIrProductos}
+          >
+            ← Volver a productos
           </button>
         </section>
       </main>

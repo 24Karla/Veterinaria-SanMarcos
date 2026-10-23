@@ -1,7 +1,22 @@
 
 import { Link, NavLink } from 'react-router-dom';
 
-function Navbar() {
+interface NavbarProps {
+  sesion: {
+    nombre: string;
+    correo: string;
+    rol: 'cliente' | 'veterinario' | 'administrador';
+  } | null;
+  onCerrarSesion: () => void;
+}
+
+const rutasPerfil = {
+  cliente: '/perfil/cliente',
+  veterinario: '/perfil/veterinario',
+  administrador: '/perfil/administrador',
+};
+
+function Navbar({ sesion, onCerrarSesion }: NavbarProps) {
   return (
     <nav className="navbar navbar-expand-lg navbar-light navbar-veterinaria">
       <div className="container-fluid px-4">
@@ -93,12 +108,30 @@ function Navbar() {
               </svg>
             </Link>
 
-            <Link
-              to="/login"
-              className="btn btn-tienda text-nowrap"
-            >
-              Iniciar sesión
-            </Link>
+            {sesion ? (
+              <>
+                <Link
+                  to={rutasPerfil[sesion.rol]}
+                  className="btn btn-tienda text-nowrap"
+                >
+                  Mi perfil
+                </Link>
+                <button
+                  type="button"
+                  className="btn btn-sesion-cerrar text-nowrap"
+                  onClick={onCerrarSesion}
+                >
+                  Salir
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="btn btn-tienda text-nowrap"
+              >
+                Iniciar sesión
+              </Link>
+            )}
 
             <Link
               to="/tienda?pagina=cita"
