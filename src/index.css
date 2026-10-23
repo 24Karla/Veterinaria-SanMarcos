@@ -383,23 +383,6 @@ footer {
 .registro-detalle strong {
   color: #2b180d;
 }
-.detalle-registro {
-  margin-top: 1rem;
-  padding: 1.25rem;
-  border-radius: 1rem;
-  background: #fff;
-  box-shadow: 0 8px 18px rgba(82,55,12,.08);
-}
-.detalle-registro h2 {
-  margin: 0 0 .4rem;
-  color: #2b180d;
-  font-size: 1.1rem;
-  font-weight: 900;
-}
-.detalle-registro p {
-  margin: 0 0 1rem;
-  color: #725f4d;
-}
 .registro-estado {
   display: inline-block;
   padding: .2rem .55rem;
