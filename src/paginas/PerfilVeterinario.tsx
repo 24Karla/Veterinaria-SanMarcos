@@ -15,7 +15,6 @@ export default function PerfilVeterinario({ sesion }: PerfilVeterinarioProps) {
 
       <section className="perfil-grid">
         <article className="perfil-tarjeta perfil-tarjeta-destacada">
-          <span className="perfil-icono">🩺</span>
           <div>
             <h2>Mi jornada</h2>
             <p><strong>5</strong> citas agendadas para hoy</p>
@@ -25,7 +24,7 @@ export default function PerfilVeterinario({ sesion }: PerfilVeterinarioProps) {
         </article>
 
         <article className="perfil-tarjeta">
-          <div className="perfil-titulo"><span>📅</span><h2>Citas agendadas</h2></div>
+          <div className="perfil-titulo"><h2>Citas agendadas</h2></div>
           <div className="perfil-lista">
             <div><strong>11:00 · Luna Morales</strong><span>Consulta general · Golden Retriever</span></div>
             <div><strong>12:30 · Tomás Silva</strong><span>Control postoperatorio · Gato</span></div>
@@ -35,7 +34,7 @@ export default function PerfilVeterinario({ sesion }: PerfilVeterinarioProps) {
         </article>
 
         <article className="perfil-tarjeta">
-          <div className="perfil-titulo"><span>💊</span><h2>Recetas emitidas</h2></div>
+          <div className="perfil-titulo"><h2>Recetas emitidas</h2></div>
           <div className="perfil-lista">
             <div><strong>Amoxicilina 250 mg</strong><span>Luna Morales · Emitida hoy</span></div>
             <div><strong>Meloxicam 1 mg</strong><span>Rocky Fuentes · 20 de octubre</span></div>
@@ -44,7 +43,7 @@ export default function PerfilVeterinario({ sesion }: PerfilVeterinarioProps) {
         </article>
 
         <article className="perfil-tarjeta">
-          <div className="perfil-titulo"><span>📋</span><h2>Historial clínico</h2></div>
+          <div className="perfil-titulo"><h2>Historial clínico</h2></div>
           <p className="perfil-texto">Consulta los controles, diagnósticos y tratamientos de los pacientes atendidos.</p>
           <Link className="btn btn-volver-tienda" to="/perfil/veterinario/historial">Buscar paciente</Link>
         </article>
