@@ -404,78 +404,6 @@ footer {
 /* ==================================================
    PÁGINA DE INICIO: tarjetas de servicios
 ================================================== */
-.inicio-banner {
-  display: flex;
-  min-height: 470px;
-  align-items: center;
-  padding: 3rem max(2rem, calc((100% - 1180px) / 2));
-  background-image:
-    linear-gradient(90deg, rgba(28, 18, 8, .78) 0%, rgba(28, 18, 8, .5) 36%, rgba(28, 18, 8, .08) 66%, rgba(28, 18, 8, .05) 100%),
-    url('/img/amigos.jpg');
-  background-repeat: no-repeat;
-  background-position: center top;
-  background-size: cover;
-}
-
-.inicio-banner-contenido {
-  max-width: 600px;
-  color: #fff;
-}
-
-.inicio-banner-etiqueta {
-  display: inline-block;
-  padding: .4rem .75rem;
-  margin: 0 0 1rem;
-  border-radius: 99px;
-  color: #2b180d;
-  font-size: .85rem;
-  font-weight: 900;
-  background: #ffebad;
-}
-
-.inicio-banner h1 {
-  margin: 0;
-  color: #fff;
-  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-  font-size: clamp(2.35rem, 4.4vw, 4.15rem);
-  font-weight: 900;
-  line-height: 1.02;
-  letter-spacing: -.065em;
-  text-wrap: balance;
-}
-
-.inicio-banner-descripcion {
-  max-width: 540px;
-  margin: 1.25rem 0 1.75rem;
-  color: #fff;
-  font-size: clamp(1rem, 1.5vw, 1.2rem);
-  font-weight: 700;
-  line-height: 1.55;
-}
-
-.inicio-banner-acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .75rem;
-}
-
-.inicio-banner-acciones .btn {
-  border-radius: .85rem;
-  font-weight: 900;
-}
-
-.btn-hero-secundario {
-  border: 1px solid #fff;
-  color: #2b180d;
-  background: #fff;
-}
-
-.btn-hero-secundario:hover,
-.btn-hero-secundario:focus {
-  border-color: #ffebad;
-  color: #2b180d;
-  background: #ffebad;
-}
 
 #servicios .card {
   overflow: hidden;
@@ -909,20 +837,6 @@ footer {
 ================================================== */
 
 @media (max-width: 767px) {
-  .inicio-banner {
-    min-height: 440px;
-    padding: 2.5rem 1.25rem;
-    background-position: 58% top;
-  }
-
-  .inicio-banner h1 {
-    font-size: clamp(2.25rem, 12vw, 3.25rem);
-  }
-
-  .inicio-banner-descripcion {
-    max-width: 390px;
-  }
-
   .navbar-veterinaria .navbar-nav {
     padding-top: .5rem;
   }
