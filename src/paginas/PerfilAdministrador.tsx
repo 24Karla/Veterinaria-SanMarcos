@@ -21,7 +21,7 @@ export default function PerfilAdministrador({ sesion }: PerfilAdministradorProps
 
       <section className="perfil-grid">
         <article className="perfil-tarjeta">
-          <div className="perfil-titulo"><span>📦</span><h2>Productos e inventario</h2></div>
+          <div className="perfil-titulo"><h2>Productos e inventario</h2></div>
           <div className="perfil-lista">
             <div><strong>7 productos bajo mínimo</strong><span>Revisa las alertas de stock.</span></div>
             <div><strong>3 solicitudes de compra</strong><span>Pendientes de aprobación.</span></div>
@@ -30,7 +30,7 @@ export default function PerfilAdministrador({ sesion }: PerfilAdministradorProps
         </article>
 
         <article className="perfil-tarjeta">
-          <div className="perfil-titulo"><span>🗓️</span><h2>Flujo de citas</h2></div>
+          <div className="perfil-titulo"><h2>Flujo de citas</h2></div>
           <div className="perfil-lista">
             <div><strong>18 citas para hoy</strong><span>12 confirmadas · 6 pendientes.</span></div>
             <div><strong>4 veterinarios en turno</strong><span>Agenda disponible hasta las 19:30 hrs.</span></div>
@@ -39,13 +39,13 @@ export default function PerfilAdministrador({ sesion }: PerfilAdministradorProps
         </article>
 
         <article className="perfil-tarjeta">
-          <div className="perfil-titulo"><span>🛒</span><h2>Pedidos y ventas</h2></div>
+          <div className="perfil-titulo"><h2>Pedidos y ventas</h2></div>
           <p className="perfil-texto">Consulta pagos recibidos, pedidos en preparación y el historial de ventas.</p>
           <Link className="btn btn-volver-tienda" to="/perfil/administrador/ventas">Ver ventas</Link>
         </article>
 
         <article className="perfil-tarjeta">
-          <div className="perfil-titulo"><span>👥</span><h2>Equipo y clientes</h2></div>
+          <div className="perfil-titulo"><h2>Equipo y clientes</h2></div>
           <p className="perfil-texto">Administra usuarios, permisos y fichas de clientes de la veterinaria.</p>
           <Link className="btn btn-volver-tienda" to="/perfil/administrador/usuarios">Gestionar usuarios</Link>
         </article>
