@@ -6,6 +6,8 @@ import { expect, test, vi } from 'vitest';
 import FormularioSesion from '../componentes/organismos/FormularioSesion';
 
 test('muestra error con credenciales incorrectas', () => {
+    const alerta = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
     render(
         <FormularioSesion onLogin={vi.fn()} />
     );
@@ -34,7 +36,9 @@ test('muestra error con credenciales incorrectas', () => {
         screen.getByRole('button', { name: 'Ingresar' })
     );
 
-    expect(screen.getByRole('alert').textContent).toBe(
+    expect(alerta).toHaveBeenCalledWith(
         'El correo o la contraseña no corresponden a una cuenta de prueba.'
     );
+
+    alerta.mockRestore();
 });
