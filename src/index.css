@@ -267,6 +267,16 @@ footer {
   color: #725f4d;
   font-size: .9rem;
 }
+.acciones-mascota {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin-top: .35rem;
+}
+.acciones-mascota .btn-volver-tienda {
+  padding: .2rem .55rem;
+  font-size: .78rem;
+}
 
 .formulario-mascota {
   display: grid;
@@ -292,11 +302,15 @@ footer {
 .perfil-cita {
   display: grid;
   gap: .35rem;
-  flex: 1;
   padding: 1rem;
   margin-bottom: 1rem;
   border-radius: .85rem;
   background: #fffaf0;
+}
+.acciones-cita {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
 }
 .perfil-texto {
   flex: 1;
@@ -351,6 +365,14 @@ footer {
   border-radius: .9rem;
   text-align: center;
   background: #fffaf0;
+}
+.registro-imagen {
+  width: 4.5rem;
+  height: 4.5rem;
+  padding: .3rem;
+  border-radius: .9rem;
+  background: #fff;
+  object-fit: contain;
 }
 .registro-fecha strong {
   color: #2b180d;
