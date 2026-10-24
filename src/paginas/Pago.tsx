@@ -75,6 +75,25 @@ export default function Pago({
             return;
         }
 
+        const pedidoNuevo = {
+            id: Date.now(),
+            fecha: new Date().toLocaleDateString('es-CL'),
+            productos: carrito.map((producto) => ({
+                nombre: producto.nombre,
+                cantidad: producto.cantidad,
+            })),
+            total,
+            estado: 'Confirmado',
+        };
+
+        try {
+            const guardados = localStorage.getItem('compras-cliente');
+            const comprasAnteriores = guardados ? JSON.parse(guardados) : [];
+            localStorage.setItem('compras-cliente', JSON.stringify([pedidoNuevo, ...comprasAnteriores]));
+        } catch {
+            localStorage.setItem('compras-cliente', JSON.stringify([pedidoNuevo]));
+        }
+
         setTotalPagado(total);
         onFinalizar();
     }

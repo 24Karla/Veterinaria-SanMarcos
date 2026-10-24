@@ -2,8 +2,31 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+interface Compra {
+    id: number;
+    fecha: string;
+    productos: { nombre: string; cantidad: number }[];
+    total: number;
+    estado: string;
+}
+
 export default function HistorialCompras() {
     const [pedidoAbierto, setPedidoAbierto] = useState('');
+    const [compras] = useState<Compra[]>(() => {
+        try {
+            const guardadas = localStorage.getItem('compras-cliente');
+            return guardadas ? JSON.parse(guardadas) : [];
+        } catch {
+            return [];
+        }
+    });
+
+    const formatoPrecio = (precio: number) =>
+        new Intl.NumberFormat('es-CL', {
+            style: 'currency',
+            currency: 'CLP',
+            maximumFractionDigits: 0,
+        }).format(precio);
 
     return (
         <main className="container panel-perfil">
@@ -28,6 +51,39 @@ export default function HistorialCompras() {
             </header>
 
             <section className="lista-registros">
+
+                {compras.map((compra) => {
+                    const identificador = String(compra.id);
+                    const productos = compra.productos
+                        .map((producto) => `${producto.nombre} x${producto.cantidad}`)
+                        .join(', ');
+
+                    return (
+                        <article className="registro-cita" key={compra.id}>
+                            <div className="registro-fecha">Pedido</div>
+
+                            <div>
+                                <h2>Pedido #{compra.id} · {compra.fecha}</h2>
+                                <p>{productos} · Total: {formatoPrecio(compra.total)} · {compra.estado}.</p>
+                            </div>
+
+                            <button
+                                type="button"
+                                className="btn btn-volver-tienda"
+                                onClick={() => setPedidoAbierto(pedidoAbierto === identificador ? '' : identificador)}
+                            >
+                                {pedidoAbierto === identificador ? 'Ocultar detalle' : 'Ver detalle'}
+                            </button>
+
+                            {pedidoAbierto === identificador && (
+                                <div className="registro-detalle">
+                                    <strong>Productos: {productos}</strong>
+                                    <span>Total pagado: {formatoPrecio(compra.total)} · Estado: {compra.estado}</span>
+                                </div>
+                            )}
+                        </article>
+                    );
+                })}
 
                 <article className="registro-cita">
                     <div className="registro-fecha">

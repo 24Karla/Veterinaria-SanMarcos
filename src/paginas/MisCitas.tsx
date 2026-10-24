@@ -2,8 +2,42 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
+interface Cita {
+    mascota: string;
+    fecha: string;
+    hora: string;
+    motivo: string;
+    veterinario: string;
+}
+
+function obtenerFecha(fecha: string) {
+    const [, mes, dia] = fecha.split('-');
+    const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+
+    return {
+        dia: dia || '28',
+        mes: meses[Number(mes) - 1] || 'OCT',
+    };
+}
+
 export default function MisCitas() {
     const [citaAbierta, setCitaAbierta] = useState('');
+    const [citas] = useState<Cita[]>(() => {
+        const citaInicial = {
+            mascota: 'Luna',
+            fecha: '2026-10-28',
+            hora: '11:00 hrs',
+            motivo: 'Consulta general',
+            veterinario: 'Dr. Martín Rojas',
+        };
+
+        try {
+            const guardadas = localStorage.getItem('citas-cliente');
+            return guardadas ? JSON.parse(guardadas) : [citaInicial];
+        } catch {
+            return [citaInicial];
+        }
+    });
 
     return (
         <main className="container panel-perfil">
@@ -29,50 +63,40 @@ export default function MisCitas() {
 
             <section className="lista-registros">
 
-                <article className="registro-cita registro-cita-proxima">
-                    <div className="registro-fecha">
-                        <strong>28</strong>
-                        <span>OCT</span>
-                    </div>
+                {citas.map((cita, indice) => {
+                    const fecha = obtenerFecha(cita.fecha);
+                    const identificador = `proxima-${indice}`;
 
-                    <div>
-                        <span className="registro-estado">
-                            Próxima cita
-                        </span>
+                    return (
+                        <article className="registro-cita registro-cita-proxima" key={identificador}>
+                            <div className="registro-fecha">
+                                <strong>{fecha.dia}</strong>
+                                <span>{fecha.mes}</span>
+                            </div>
 
-                        <h2>Consulta general · Luna</h2>
+                            <div>
+                                <span className="registro-estado">Próxima cita</span>
+                                <h2>{cita.motivo} · {cita.mascota}</h2>
+                                <p>{cita.hora} · {cita.veterinario}</p>
+                            </div>
 
-                        <p>
-                            11:00 hrs · Dr. Martín Rojas · Sala 2
-                        </p>
-                    </div>
+                            <button
+                                type="button"
+                                className="btn btn-tienda"
+                                onClick={() => setCitaAbierta(citaAbierta === identificador ? '' : identificador)}
+                            >
+                                {citaAbierta === identificador ? 'Ocultar detalle' : 'Ver detalle'}
+                            </button>
 
-                    <button
-                        type="button"
-                        className="btn btn-tienda"
-                        onClick={() =>
-                            setCitaAbierta(
-                                citaAbierta === 'luna' ? '' : 'luna'
-                            )
-                        }
-                    >
-                        {citaAbierta === 'luna'
-                            ? 'Ocultar detalle'
-                            : 'Ver detalle'}
-                    </button>
-
-                    {citaAbierta === 'luna' && (
-                        <div className="registro-detalle">
-                            <strong>
-                                Consulta general de Luna
-                            </strong>
-
-                            <span>
-                                28 de octubre · 11:00 hrs · Dr. Martín Rojas · Sala 2
-                            </span>
-                        </div>
-                    )}
-                </article>
+                            {citaAbierta === identificador && (
+                                <div className="registro-detalle">
+                                    <strong>{cita.motivo} de {cita.mascota}</strong>
+                                    <span>{cita.fecha} · {cita.hora} · {cita.veterinario}</span>
+                                </div>
+                            )}
+                        </article>
+                    );
+                })}
 
                 <article className="registro-cita">
                     <div className="registro-fecha">
