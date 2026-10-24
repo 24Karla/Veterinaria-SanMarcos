@@ -10,6 +10,14 @@ interface Mascota {
   detalle: string;
 }
 
+interface Cita {
+  mascota: string;
+  fecha: string;
+  hora: string;
+  motivo: string;
+  veterinario: string;
+}
+
 export default function PerfilCliente({ sesion }: PerfilClienteProps) {
   const [perfil, setPerfil] = useState(() => {
     const perfilInicial = {
@@ -39,11 +47,28 @@ export default function PerfilCliente({ sesion }: PerfilClienteProps) {
     }
   });
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mascotaEditando, setMascotaEditando] = useState<number | null>(null);
   const [nombreMascota, setNombreMascota] = useState('');
   const [especieMascota, setEspecieMascota] = useState('Perro');
   const [edadMascota, setEdadMascota] = useState('');
   const [editandoPerfil, setEditandoPerfil] = useState(false);
   const [datosPerfil, setDatosPerfil] = useState(perfil);
+  const [citas] = useState<Cita[]>(() => {
+    const citaInicial = {
+      mascota: 'Luna',
+      fecha: '28 de octubre',
+      hora: '11:00 hrs',
+      motivo: 'Consulta general',
+      veterinario: 'Dr. Martín Rojas',
+    };
+
+    try {
+      const guardadas = localStorage.getItem('citas-cliente');
+      return guardadas ? JSON.parse(guardadas) : [citaInicial];
+    } catch {
+      return [citaInicial];
+    }
+  });
 
   useEffect(() => {
     localStorage.setItem('mascotas-cliente', JSON.stringify(mascotas));
@@ -53,18 +78,45 @@ export default function PerfilCliente({ sesion }: PerfilClienteProps) {
     localStorage.setItem('perfil-cliente', JSON.stringify(perfil));
   }, [perfil]);
 
-  function agregarMascota(event: FormEvent<HTMLFormElement>) {
+  function guardarMascota(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    setMascotas((actuales) => [
-      ...actuales,
-      {
-        nombre: nombreMascota.trim(),
-        detalle: `${especieMascota} · ${edadMascota.trim()} años`,
-      },
-    ]);
+    const mascota = {
+      nombre: nombreMascota.trim(),
+      detalle: `${especieMascota} · ${edadMascota.trim()} años`,
+    };
+
+    if (mascotaEditando === null) {
+      setMascotas((actuales) => [...actuales, mascota]);
+    } else {
+      setMascotas((actuales) =>
+        actuales.map((mascotaActual, indice) =>
+          indice === mascotaEditando ? mascota : mascotaActual
+        )
+      );
+    }
+
+    cerrarFormularioMascota();
+  }
+
+  function editarMascota(mascota: Mascota, indice: number) {
+    const [especie, , edad] = mascota.detalle.split(' · ');
+    setNombreMascota(mascota.nombre);
+    setEspecieMascota(especie);
+    setEdadMascota(edad.replace(' años', ''));
+    setMascotaEditando(indice);
+    setMostrarFormulario(true);
+  }
+
+  function eliminarMascota(indice: number) {
+    setMascotas((actuales) => actuales.filter((_, posicion) => posicion !== indice));
+  }
+
+  function cerrarFormularioMascota() {
     setNombreMascota('');
+    setEspecieMascota('Perro');
     setEdadMascota('');
+    setMascotaEditando(null);
     setMostrarFormulario(false);
   }
 
@@ -135,15 +187,56 @@ export default function PerfilCliente({ sesion }: PerfilClienteProps) {
         <article className="perfil-tarjeta">
           <div className="perfil-titulo"><h2>Mis mascotas</h2></div>
           <div className="perfil-lista">
-            {mascotas.map((mascota) => (
-              <div key={mascota.nombre}>
+            {mascotas.map((mascota, indice) => (
+              <div key={`${mascota.nombre}-${indice}`}>
                 <strong>{mascota.nombre}</strong>
                 <span>{mascota.detalle}</span>
+                <div className="acciones-mascota">
+                  <button className="btn btn-volver-tienda" type="button" onClick={() => editarMascota(mascota, indice)}>
+                    Editar
+                  </button>
+                  <button className="btn btn-eliminar" type="button" onClick={() => eliminarMascota(indice)}>
+                    Eliminar
+                  </button>
+                </div>
+                {mascotaEditando === indice && (
+                  <form className="formulario-mascota" onSubmit={guardarMascota}>
+                    <input
+                      className="form-control"
+                      value={nombreMascota}
+                      onChange={(event) => setNombreMascota(event.target.value)}
+                      placeholder="Nombre de la mascota"
+                      required
+                    />
+                    <select
+                      className="form-select"
+                      value={especieMascota}
+                      onChange={(event) => setEspecieMascota(event.target.value)}
+                    >
+                      <option>Perro</option>
+                      <option>Gato</option>
+                      <option>Otro</option>
+                    </select>
+                    <input
+                      className="form-control"
+                      value={edadMascota}
+                      onChange={(event) => setEdadMascota(event.target.value)}
+                      placeholder="Edad"
+                      type="number"
+                      min="0"
+                      required
+                    />
+                    <div>
+                      <button className="btn btn-tienda me-2" type="submit">Guardar cambios</button>
+                      <button className="btn btn-volver-tienda" type="button" onClick={cerrarFormularioMascota}>Cancelar</button>
+                    </div>
+                  </form>
+                )}
               </div>
             ))}
           </div>
-          {mostrarFormulario ? (
-            <form className="formulario-mascota" onSubmit={agregarMascota}>
+          {mostrarFormulario && mascotaEditando === null ? (
+            <form className="formulario-mascota" onSubmit={guardarMascota}>
               <input
                 className="form-control"
                 value={nombreMascota}
@@ -170,12 +263,17 @@ export default function PerfilCliente({ sesion }: PerfilClienteProps) {
                 required
               />
               <div>
-                <button className="btn btn-tienda me-2" type="submit">Guardar</button>
-                <button className="btn btn-volver-tienda" type="button" onClick={() => setMostrarFormulario(false)}>Cancelar</button>
+                <button className="btn btn-tienda me-2" type="submit">
+                  {mascotaEditando === null ? 'Agregar mascota' : 'Guardar cambios'}
+                </button>
+                <button className="btn btn-volver-tienda" type="button" onClick={cerrarFormularioMascota}>Cancelar</button>
               </div>
             </form>
           ) : (
-            <button className="btn btn-tienda" type="button" onClick={() => setMostrarFormulario(true)}>
+            <button className="btn btn-tienda" type="button" onClick={() => {
+              setMascotaEditando(null);
+              setMostrarFormulario(true);
+            }}>
               Agregar mascota
             </button>
           )}
@@ -183,12 +281,17 @@ export default function PerfilCliente({ sesion }: PerfilClienteProps) {
 
         <article className="perfil-tarjeta">
           <div className="perfil-titulo"><h2>Próximas citas</h2></div>
-          <div className="perfil-cita">
-            <strong>Consulta general · Luna</strong>
-            <span>28 de octubre · 11:00 hrs</span>
-            <span>Dr. Martín Rojas</span>
+          {citas.slice(0, 2).map((cita, indice) => (
+            <div className="perfil-cita" key={`${cita.mascota}-${cita.fecha}-${indice}`}>
+              <strong>{cita.motivo} · {cita.mascota}</strong>
+              <span>{cita.fecha} · {cita.hora}</span>
+              <span>{cita.veterinario}</span>
+            </div>
+          ))}
+          <div className="acciones-cita">
+            <Link className="btn btn-tienda" to="/tienda?pagina=cita&origen=perfil">Reservar cita</Link>
+            <Link className="btn btn-volver-tienda" to="/perfil/cliente/citas">Ver mis citas</Link>
           </div>
-          <Link className="btn btn-volver-tienda" to="/perfil/cliente/citas">Ver mis citas</Link>
         </article>
 
         <article className="perfil-tarjeta">
