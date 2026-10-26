@@ -1,24 +1,31 @@
-type Props = {
+interface CampoAreaTextoProps {
   etiqueta: string;
   nombre: string;
   valor: string;
   filas?: number;
   alCambiar: (valor: string) => void;
-};
+  placeholder?: string;
+}
 
-function CampoAreaTexto({ etiqueta, nombre, valor, filas = 4, alCambiar }: Props) {
+export default function CampoAreaTexto({
+  etiqueta,
+  nombre,
+  valor,
+  filas = 4,
+  alCambiar,
+  placeholder,
+}: CampoAreaTextoProps) {
   return (
-    <div className="mb-3">
-      <label className="form-label">{etiqueta}</label>
+    <div className="mb-3 text-start">
+      <label className="form-label fw-bold">{etiqueta}</label>
       <textarea
         name={nombre}
-        className="form-control"
         rows={filas}
+        className="form-control"
         value={valor}
         onChange={(e) => alCambiar(e.target.value)}
-      />
+        placeholder={placeholder}
+      ></textarea>
     </div>
   );
 }
-
-export default CampoAreaTexto;

@@ -7,17 +7,23 @@ import Navbar from './componentes/organismos/Navbar';
 import Inicio from './paginas/Inicio';
 import Login from './paginas/Login';
 import Servicios from './paginas/Servicios';
+import Contacto from './paginas/Contacto'; 
+import Blog from './paginas/Blog';
+import Equipo from './paginas/Equipo';
 
 import type {
   Producto,
   ProductoCarrito,
 } from './componentes/organismos/CardTienda';
 
+
 import Carrito from './paginas/Carrito';
 import Pago from './paginas/Pago';
 import Productos from './paginas/Productos';
 import ReservarCita from './paginas/ReservarCita';
 import VerProducto from './paginas/VerProducto';
+
+
 
 function App() {
   return (
@@ -30,14 +36,16 @@ function App() {
     >
       <Navbar />
 
-      <div className="flex-grow-1">
-        <Routes>
-          <Route path="/" element={<Inicio />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/servicios" element={<Servicios />} /> 
-          <Route path="/tienda/*" element={<RutaTienda />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/" element={<Inicio />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/servicios" element={<Servicios />} /> 
+        <Route path="/contacto" element={<Contacto />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/equipo" element={<Equipo />} />
+        <Route path="/tienda/*" element={<RutaTienda />} />
+        <Route path="*" element={<div className="p-5 text-center"><h2>Página no encontrada (Error 404)</h2></div>} />
+      </Routes>
 
       <Footer />
     </div>

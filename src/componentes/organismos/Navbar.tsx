@@ -42,12 +42,12 @@ function Navbar() {
               Servicios
             </NavLink>
 
-            <Link
+            <NavLink
               className="nav-link fw-semibold"
               to="/equipo"
             >
               Equipo
-            </Link>
+            </NavLink>
 
             <NavLink
               className="nav-link fw-semibold"
@@ -56,12 +56,12 @@ function Navbar() {
               Contacto
             </NavLink>
 
-            <Link
+            <NavLink
               className="nav-link fw-semibold"
               to="/blog"
             >
               Blog
-            </Link>
+            </NavLink>
 
             <NavLink
               className="nav-link fw-semibold"
