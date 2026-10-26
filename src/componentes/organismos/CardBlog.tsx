@@ -1,47 +1,47 @@
-export interface ArticuloBlog {
+export interface PublicacionBlog {
   id: number;
   titulo: string;
   resumen: string;
+  autor: string;
   fecha: string;
   categoria: string;
   imagen: string;
-  autor: string;
 }
 
 interface CardBlogProps {
-  articulo: ArticuloBlog;
+  post: PublicacionBlog;
 }
 
-export default function CardBlog({ articulo }: CardBlogProps) {
+export default function CardBlog({ post }: CardBlogProps) {
   return (
     <div className="card h-100 shadow-sm border-0 rounded-3 text-start bg-white overflow-hidden">
       <img
-        src={articulo.imagen}
-        alt={articulo.titulo}
+        src={post.imagen}
+        alt={post.titulo}
         className="card-img-top"
         style={{ height: '200px', objectFit: 'cover' }}
       />
-      <div className="card-body d-flex flex-column justify-content-between p-4">
+      <div className="card-body p-4 d-flex flex-column justify-content-between">
         <div>
-          <div className="d-flex align-items-center gap-2 mb-2">
+          <div className="d-flex justify-content-between align-items-center mb-2">
             <span
               className="badge text-dark fw-bold"
               style={{ backgroundColor: '#e8c746' }}
             >
-              {articulo.categoria}
+              {post.categoria}
             </span>
-            <small className="text-muted">{articulo.fecha}</small>
+            <small className="text-muted">{post.fecha}</small>
           </div>
 
-          <h4 className="card-title fw-bold text-dark mb-2">{articulo.titulo}</h4>
-          <p className="card-text text-muted small mb-3">{articulo.resumen}</p>
+          <h5 className="card-title fw-bold text-dark mb-2">{post.titulo}</h5>
+          <p className="card-text text-muted small mb-3">{post.resumen}</p>
         </div>
 
         <div className="pt-3 border-top d-flex justify-content-between align-items-center">
-          <small className="text-muted">Por <strong>{articulo.autor}</strong></small>
-          <button className="btn btn-sm btn-outline-dark fw-bold">
+          <small className="text-muted fw-bold">Por {post.autor}</small>
+          <a href="#" className="btn btn-sm text-dark fw-bold" style={{ backgroundColor: '#e8c746' }}>
             Leer más
-          </button>
+          </a>
         </div>
       </div>
     </div>

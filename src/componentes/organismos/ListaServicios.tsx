@@ -10,7 +10,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$15.000',
     duracion: '30 min',
     categoria: 'Consultas',
-    imagen: '/img/consulta.png'
+    imagen: '/img/consulta.jpg'
   },
   {
     id: 2,
@@ -19,7 +19,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$25.000',
     duracion: '30 min',
     categoria: 'Consultas',
-    imagen: '/img/urgencias.png'
+    imagen: '/img/urgencias.jpg'
   },
   {
     id: 3,
@@ -28,7 +28,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$10.000',
     duracion: '20 min',
     categoria: 'Consultas',
-    imagen: '/img/consulta.png'
+    imagen: '/img/consulta.jpg'
   },
   {
     id: 4,
@@ -37,7 +37,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$18.000',
     duracion: '30 min',
     categoria: 'Consultas',
-    imagen: '/img/consulta.png'
+    imagen: '/img/consulta.jpg'
   },
   {
     id: 5,
@@ -46,7 +46,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$20.000',
     duracion: '40 min',
     categoria: 'Consultas',
-    imagen: '/img/consulta.png'
+    imagen: '/img/consulta.jpg'
   },
 
   // Vacunación
@@ -57,7 +57,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$12.000',
     duracion: '10 min',
     categoria: 'Vacunación',
-    imagen: '/img/vacunacion.png'
+    imagen: '/img/vacunacion.jpg'
   },
   {
     id: 7,
@@ -66,7 +66,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$18.000',
     duracion: '10 min',
     categoria: 'Vacunación',
-    imagen: '/img/vacunacion.png'
+    imagen: '/img/vacunacion.jpg'
   },
   {
     id: 8,
@@ -75,7 +75,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$15.000',
     duracion: '10 min',
     categoria: 'Vacunación',
-    imagen: '/img/vacunacion.png'
+    imagen: '/img/vacunacion.jpg'
   },
   {
     id: 9,
@@ -84,7 +84,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$17.000',
     duracion: '10 min',
     categoria: 'Vacunación',
-    imagen: '/img/vacunacion.png'
+    imagen: '/img/vacunacion.jpg'
   },
   {
     id: 10,
@@ -93,7 +93,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$14.000',
     duracion: '10 min',
     categoria: 'Vacunación',
-    imagen: '/img/vacunacion.png'
+    imagen: '/img/vacunacion.jpg'
   },
   {
     id: 11,
@@ -102,7 +102,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$12.000',
     duracion: '10 min',
     categoria: 'Vacunación',
-    imagen: '/img/vacunacion.png'
+    imagen: '/img/vacunacion.jpg'
   },
 
   // Cirugía
@@ -113,7 +113,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$80.000',
     duracion: '90 min',
     categoria: 'Cirugía',
-    imagen: '/img/cirugia.png'
+    imagen: '/img/cirugia.jpg'
   },
   {
     id: 13,
@@ -122,7 +122,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$60.000',
     duracion: '60 min',
     categoria: 'Cirugía',
-    imagen: '/img/cirugia.png'
+    imagen: '/img/cirugia.jpg'
   },
   {
     id: 14,
@@ -131,7 +131,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$65.000',
     duracion: '60 min',
     categoria: 'Cirugía',
-    imagen: '/img/cirugia.png'
+    imagen: '/img/cirugia.jpg'
   },
   {
     id: 15,
@@ -140,7 +140,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$50.000',
     duracion: '45 min',
     categoria: 'Cirugía',
-    imagen: '/img/cirugia.png'
+    imagen: '/img/cirugia.jpg'
   },
   {
     id: 16,
@@ -149,7 +149,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$120.000',
     duracion: '60 min',
     categoria: 'Cirugía',
-    imagen: '/img/cirugia.png'
+    imagen: '/img/cirugia.jpg'
   },
   {
     id: 17,
@@ -158,7 +158,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$180.000',
     duracion: '120 min',
     categoria: 'Cirugía',
-    imagen: '/img/cirugia.png'
+    imagen: '/img/cirugia.jpg'
   },
 
   // Desparasitación
@@ -169,7 +169,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$8.000',
     duracion: '5 min',
     categoria: 'Desparasitación',
-    imagen: '/img/vacunacion.png'
+    imagen: '/img/vacunacion.jpg'
   },
   {
     id: 19,
@@ -178,7 +178,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$9.500',
     duracion: '5 min',
     categoria: 'Desparasitación',
-    imagen: '/img/vacunacion.png'
+    imagen: '/img/vacunacion.jpg'
   },
   {
     id: 20,
@@ -187,7 +187,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$11.000',
     duracion: '5 min',
     categoria: 'Desparasitación',
-    imagen: '/img/vacunacion.png'
+    imagen: '/img/vacunacion.jpg'
   },
   {
     id: 21,
@@ -196,7 +196,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$8.000',
     duracion: '5 min',
     categoria: 'Desparasitación',
-    imagen: '/img/vacunacion.png'
+    imagen: '/img/vacunacion.jpg'
   },
   {
     id: 22,
@@ -205,7 +205,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$7.500',
     duracion: '5 min',
     categoria: 'Desparasitación',
-    imagen: '/img/vacunacion.png'
+    imagen: '/img/vacunacion.jpg'
   },
 
   // Exámenes
@@ -216,7 +216,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$22.000',
     duracion: '30 min',
     categoria: 'Exámenes',
-    imagen: '/img/laboratorio.png'
+    imagen: '/img/laboratorio.jpg'
   },
   {
     id: 24,
@@ -225,7 +225,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$35.000',
     duracion: '30 min',
     categoria: 'Exámenes',
-    imagen: '/img/laboratorio.png'
+    imagen: '/img/laboratorio.jpg'
   },
   {
     id: 25,
@@ -234,7 +234,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$28.000',
     duracion: '20 min',
     categoria: 'Exámenes',
-    imagen: '/img/laboratorio.png'
+    imagen: '/img/laboratorio.jpg'
   },
   {
     id: 26,
@@ -243,7 +243,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$45.000',
     duracion: '30 min',
     categoria: 'Exámenes',
-    imagen: '/img/laboratorio.png'
+    imagen: '/img/laboratorio.jpg'
   },
   {
     id: 27,
@@ -252,7 +252,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$18.000',
     duracion: '20 min',
     categoria: 'Exámenes',
-    imagen: '/img/laboratorio.png'
+    imagen: '/img/laboratorio.jpg'
   },
 
   // Otros
@@ -263,7 +263,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$5.000',
     duracion: '15 min',
     categoria: 'Otros',
-    imagen: '/img/peluqueria.png'
+    imagen: '/img/peluqueria.jpg'
   },
   {
     id: 29,
@@ -272,7 +272,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$55.000',
     duracion: '45 min',
     categoria: 'Otros',
-    imagen: '/img/peluqueria.png'
+    imagen: '/img/peluqueria.jpg'
   },
   {
     id: 30,
@@ -281,7 +281,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$15.000',
     duracion: '10 min',
     categoria: 'Otros',
-    imagen: '/img/consulta.png'
+    imagen: '/img/consulta.jpg'
   },
   {
     id: 31,
@@ -290,7 +290,7 @@ const SERVICIOS_MOCK: Servicio[] = [
     precio: '$30.000',
     duracion: '24 h',
     categoria: 'Otros',
-    imagen: '/img/urgencias.png'
+    imagen: '/img/urgencias.jpg'
   }
 ];
 

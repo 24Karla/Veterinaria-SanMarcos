@@ -1,5 +1,14 @@
 import CardEquipo from './CardEquipo';
-import type { MiembroEquipo } from './CardEquipo';
+
+export interface MiembroEquipo {
+  id: number;
+  nombre: string;
+  cargo: string;
+  especialidad: string;
+  experiencia: string;
+  bio: string;
+  imagen: string;
+}
 
 const EQUIPO_MOCK: MiembroEquipo[] = [
   {
@@ -8,8 +17,8 @@ const EQUIPO_MOCK: MiembroEquipo[] = [
     cargo: 'Médico Veterinario Directora',
     especialidad: 'Medicina General y Cirugía',
     experiencia: '12 años',
-    bio: 'Especialista en medicina interna y cirugía de animales de compañía. Apasionada por el bienestar animal y la atención preventiva.',
-    imagen: '/img/equipo/veterinaria1.png'
+    bio: 'Especialista en medicina interna y cirugía de animales de compañía.',
+    imagen: '/img/veterinaria1.jpg'
   },
   {
     id: 2,
@@ -17,8 +26,8 @@ const EQUIPO_MOCK: MiembroEquipo[] = [
     cargo: 'Médico Veterinario',
     especialidad: 'Dermatología y Felinos',
     experiencia: '8 años',
-    bio: 'Dedicado al diagnóstico dermatológico avanzado y al manejo clínico amigable para pacientes felinos (Cat Friendly).',
-    imagen: '/img/equipo/veterinario2.png'
+    bio: 'Dedicado al diagnóstico dermatológico avanzado y al manejo amigable felino.',
+    imagen: '/img/veterinario2.jpg'
   },
   {
     id: 3,
@@ -26,8 +35,8 @@ const EQUIPO_MOCK: MiembroEquipo[] = [
     cargo: 'Médico Veterinario Exóticos',
     especialidad: 'Mascotas Exóticas',
     experiencia: '6 años',
-    bio: 'Especialista en el cuidado, nutrición y tratamientos médicos para conejos, hurones, aves y pequeños roedores.',
-    imagen: '/img/equipo/veterinaria3.png'
+    bio: 'Especialista en el cuidado y tratamientos para conejos, aves y pequeños roedores.',
+    imagen: '/img/veterinaria3.jpg'
   }
 ];
 
@@ -35,7 +44,7 @@ export default function ListaEquipo() {
   return (
     <div className="row g-4">
       {EQUIPO_MOCK.map((miembro) => (
-        <div key={miembro.id} className="col-md-6 col-lg-4">
+        <div key={miembro.id} className="col-md-4">
           <CardEquipo miembro={miembro} />
         </div>
       ))}

@@ -1,42 +1,51 @@
-import CardEquipo from './CardEquipo';
-import type { MiembroEquipo } from './CardEquipo';
+import CardBlog from './CardBlog';
 
-const EQUIPO_MOCK: MiembroEquipo[] = [
+export interface PublicacionBlog {
+  id: number;
+  titulo: string;
+  resumen: string;
+  autor: string;
+  fecha: string;
+  categoria: string;
+  imagen: string;
+}
+
+const BLOG_MOCK: PublicacionBlog[] = [
   {
     id: 1,
-    nombre: 'Dra. María Paz Fernández',
-    cargo: 'Médico Veterinario Directora',
-    especialidad: 'Medicina General y Cirugía',
-    experiencia: '12 años',
-    bio: 'Especialista en medicina interna y cirugía de animales de compañía.',
-    imagen: '/img/equipo/veterinaria1.png'
+    titulo: 'Cuidados esenciales para tu perro en época de verano',
+    resumen: 'Aprende a proteger a tu canino del golpe de calor, deshidratación y quemaduras en las almohadillas.',
+    autor: 'Dra. María Paz Fernández',
+    fecha: '15 Oct 2024',
+    categoria: 'Cuidados Caninos',
+    imagen: '/img/perro.jpg'
   },
   {
     id: 2,
-    nombre: 'Dr. Carlos Silva Reyes',
-    cargo: 'Médico Veterinario',
-    especialidad: 'Dermatología y Felinos',
-    experiencia: '8 años',
-    bio: 'Dedicado al diagnóstico dermatológico avanzado y atención amigable felina.',
-    imagen: '/img/equipo/veterinario2.png'
+    titulo: 'Guía de nutrición felina: ¿Qué necesita realmente tu gato?',
+    resumen: 'Descubre la importancia de las proteínas de alta calidad y la hidratación en la dieta diaria felina.',
+    autor: 'Dr. Carlos Silva Reyes',
+    fecha: '10 Oct 2024',
+    categoria: 'Salud Felina',
+    imagen: '/img/gato.jpg'
   },
   {
     id: 3,
-    nombre: 'Dra. Ana López Castro',
-    cargo: 'Médico Veterinario Exóticos',
-    especialidad: 'Mascotas Exóticas',
-    experiencia: '6 años',
-    bio: 'Especialista en el cuidado y salud de conejos, aves y pequeñas mascotas.',
-    imagen: '/img/equipo/veterinaria3.png'
+    titulo: 'Conejos y exóticos: Prevención de problemas dentales',
+    resumen: 'El crecimiento continuo de los dientes en roedores y conejos requiere una dieta adecuada en heno.',
+    autor: 'Dra. Ana López Castro',
+    fecha: '02 Oct 2024',
+    categoria: 'Mascotas Exóticas',
+    imagen: '/img/conejo.jpg'
   }
 ];
 
-export default function ListaEquipo() {
+export default function ListaBlog() {
   return (
     <div className="row g-4">
-      {EQUIPO_MOCK.map((miembro) => (
-        <div key={miembro.id} className="col-md-6 col-lg-4">
-          <CardEquipo miembro={miembro} />
+      {BLOG_MOCK.map((post) => (
+        <div key={post.id} className="col-md-4">
+          <CardBlog post={post} />
         </div>
       ))}
     </div>
