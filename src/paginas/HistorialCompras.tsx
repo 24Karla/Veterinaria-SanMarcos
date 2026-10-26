@@ -60,7 +60,11 @@ export default function HistorialCompras() {
 
                     return (
                         <article className="registro-cita" key={compra.id}>
-                            <div className="registro-fecha">Pedido</div>
+                            <img
+                                className="registro-imagen"
+                                src="/img/historialcompra.png"
+                                alt="Historial de compra"
+                            />
 
                             <div>
                                 <h2>Pedido #{compra.id} · {compra.fecha}</h2>
@@ -86,9 +90,11 @@ export default function HistorialCompras() {
                 })}
 
                 <article className="registro-cita">
-                    <div className="registro-fecha">
-                        Pedido
-                    </div>
+                    <img
+                        className="registro-imagen"
+                        src="/img/historialcompra.png"
+                        alt="Historial de compra"
+                    />
 
                     <div>
                         <h2>Pedido #1024 · 20 de octubre de 2026</h2>
@@ -127,9 +133,11 @@ export default function HistorialCompras() {
                 </article>
 
                 <article className="registro-cita">
-                    <div className="registro-fecha">
-                        Pedido
-                    </div>
+                    <img
+                        className="registro-imagen"
+                        src="/img/historialcompra.png"
+                        alt="Historial de compra"
+                    />
 
                     <div>
                         <h2>Pedido #1008 · 5 de octubre de 2026</h2>

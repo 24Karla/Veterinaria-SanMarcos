@@ -394,6 +394,18 @@ footer {
   margin: 0;
   color: #725f4d;
 }
+.acciones-registro {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  align-items: center;
+  gap: .45rem;
+}
+.registro-cita .formulario-mascota {
+  grid-column: 1 / -1;
+  padding-top: .85rem;
+  border-top: 1px solid #f0e5d6;
+}
 .registro-detalle {
   display: grid;
   grid-column: 1 / -1;

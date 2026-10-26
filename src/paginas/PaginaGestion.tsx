@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
 interface RegistroGestion {
@@ -14,6 +14,11 @@ interface PaginaGestionProps {
     descripcion: string;
     volverA: string;
     registros: RegistroGestion[];
+    accion?: ReactNode;
+    onEditar?: (registro: RegistroGestion, indice: number) => void;
+    onEliminar?: (indice: number) => void;
+    registroEditando?: number | null;
+    formularioEdicion?: () => ReactNode;
 }
 
 export default function PaginaGestion({
@@ -22,6 +27,11 @@ export default function PaginaGestion({
     descripcion,
     volverA,
     registros,
+    accion,
+    onEditar,
+    onEliminar,
+    registroEditando,
+    formularioEdicion,
 }: PaginaGestionProps) {
     const [registroAbierto, setRegistroAbierto] = useState('');
 
@@ -43,8 +53,10 @@ export default function PaginaGestion({
                 <p>{descripcion}</p>
             </header>
 
+            {accion}
+
             <section className="lista-registros">
-                {registros.map((registro) => (
+                {registros.map((registro, indice) => (
                     <article
                         key={registro.titulo}
                         className="registro-cita"
@@ -66,21 +78,35 @@ export default function PaginaGestion({
                             <p>{registro.descripcion}</p>
                         </div>
 
-                        <button
-                            type="button"
-                            className="btn btn-volver-tienda"
-                            onClick={() =>
-                                setRegistroAbierto(
-                                    registroAbierto === registro.titulo
-                                        ? ''
-                                        : registro.titulo
-                                )
-                            }
-                        >
-                            {registroAbierto === registro.titulo
-                                ? 'Ocultar detalle'
-                                : 'Ver detalle'}
-                        </button>
+                        <div className="acciones-registro">
+                            <button
+                                type="button"
+                                className="btn btn-volver-tienda"
+                                onClick={() =>
+                                    setRegistroAbierto(
+                                        registroAbierto === registro.titulo
+                                            ? ''
+                                            : registro.titulo
+                                    )
+                                }
+                            >
+                                {registroAbierto === registro.titulo
+                                    ? 'Ocultar detalle'
+                                    : 'Ver detalle'}
+                            </button>
+
+                            {onEditar && (
+                                <button className="btn btn-volver-tienda" type="button" onClick={() => onEditar(registro, indice)}>
+                                    Editar
+                                </button>
+                            )}
+
+                            {onEliminar && (
+                                <button className="btn btn-eliminar" type="button" onClick={() => onEliminar(indice)}>
+                                    Eliminar
+                                </button>
+                            )}
+                        </div>
 
                         {registroAbierto === registro.titulo && (
                             <div className="registro-detalle">
@@ -88,6 +114,8 @@ export default function PaginaGestion({
                                 <span>{registro.descripcion}</span>
                             </div>
                         )}
+
+                        {registroEditando === indice && formularioEdicion && formularioEdicion()}
                     </article>
                 ))}
             </section>
