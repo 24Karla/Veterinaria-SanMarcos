@@ -1,13 +1,8 @@
 import CardBlog from './CardBlog';
+import type { PublicacionBlog } from './CardBlog';
 
-export interface PublicacionBlog {
-  id: number;
-  titulo: string;
-  resumen: string;
-  autor: string;
-  fecha: string;
-  categoria: string;
-  imagen: string;
+interface ListaBlogProps {
+  onSelectPost?: (post: PublicacionBlog) => void;
 }
 
 const BLOG_MOCK: PublicacionBlog[] = [
@@ -40,12 +35,13 @@ const BLOG_MOCK: PublicacionBlog[] = [
   }
 ];
 
-export default function ListaBlog() {
+// 2. Aplicamos ListaBlogProps en el componente
+export default function ListaBlog({ onSelectPost }: ListaBlogProps) {
   return (
     <div className="row g-4">
       {BLOG_MOCK.map((post) => (
         <div key={post.id} className="col-md-4">
-          <CardBlog post={post} />
+          <CardBlog post={post} onSelectPost={onSelectPost} />
         </div>
       ))}
     </div>

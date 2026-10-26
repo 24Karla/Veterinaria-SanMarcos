@@ -6,13 +6,15 @@ export interface PublicacionBlog {
   fecha: string;
   categoria: string;
   imagen: string;
+  contenido?: string;
 }
 
 interface CardBlogProps {
   post: PublicacionBlog;
+  onSelectPost?: (post: PublicacionBlog) => void;
 }
 
-export default function CardBlog({ post }: CardBlogProps) {
+export default function CardBlog({ post, onSelectPost }: CardBlogProps) {
   return (
     <div className="card h-100 shadow-sm border-0 rounded-3 text-start bg-white overflow-hidden">
       <img
@@ -39,9 +41,23 @@ export default function CardBlog({ post }: CardBlogProps) {
 
         <div className="pt-3 border-top d-flex justify-content-between align-items-center">
           <small className="text-muted fw-bold">Por {post.autor}</small>
-          <a href="#" className="btn btn-sm text-dark fw-bold" style={{ backgroundColor: '#e8c746' }}>
-            Leer más
-          </a>
+          {onSelectPost ? (
+            <button
+              onClick={() => onSelectPost(post)}
+              className="btn btn-sm text-dark fw-bold"
+              style={{ backgroundColor: '#e8c746' }}
+            >
+              Leer más
+            </button>
+          ) : (
+            <a
+              href={`#post-${post.id}`}
+              className="btn btn-sm text-dark fw-bold"
+              style={{ backgroundColor: '#e8c746' }}
+            >
+              Leer más
+            </a>
+          )}
         </div>
       </div>
     </div>
