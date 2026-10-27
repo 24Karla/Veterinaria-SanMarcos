@@ -15,7 +15,7 @@ interface CardServicioProps {
 }
 
 export function crearRutaReserva(titulo: string) {
-  return `/tienda?pagina=cita&servicio=${encodeURIComponent(titulo)}`;
+  return `/tienda?pagina=cita&origen=servicios&servicio=${encodeURIComponent(titulo)}`;
 }
 
 export default function CardServicio({ servicio }: CardServicioProps) {

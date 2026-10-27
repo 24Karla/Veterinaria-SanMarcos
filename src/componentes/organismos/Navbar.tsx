@@ -55,33 +55,33 @@ function Navbar({ sesion, onCerrarSesion }: NavbarProps) {
 
                     <div className="navbar-nav me-auto ms-lg-4 gap-lg-2">
 
-                        <Link
+                        <NavLink
                             className="nav-link fw-semibold"
-                            to="/#servicios"
+                            to="/servicios"
                         >
                             Servicios
-                        </Link>
+                        </NavLink>
 
-                        <Link
+                        <NavLink
                             className="nav-link fw-semibold"
-                            to="/#equipo"
+                            to="/equipo"
                         >
                             Equipo
-                        </Link>
+                        </NavLink>
 
-                        <Link
+                        <NavLink
                             className="nav-link fw-semibold"
-                            to="/#contacto"
+                            to="/contacto"
                         >
                             Contacto
-                        </Link>
+                        </NavLink>
 
-                        <Link
+                        <NavLink
                             className="nav-link fw-semibold"
-                            to="/#blog"
+                            to="/blog"
                         >
                             Blog
-                        </Link>
+                        </NavLink>
 
                         <NavLink
                             className="nav-link fw-semibold"
