@@ -1,215 +1,303 @@
-import { useEffect, useState } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+
+import { useState } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 import Footer from './componentes/organismos/Footer';
 import Navbar from './componentes/organismos/Navbar';
 
+import PerfilProtegido, {
+  rutasPerfil,
+  type SesionUsuario,
+} from './componentes/organismos/PerfilProtegido';
+
+import {
+  CitasAdministrador,
+  UsuariosAdministrador,
+  VentasAdministrador,
+} from './paginas/GestionAdministrador';
+
+import {
+  AgendaVeterinario,
+  HistorialVeterinario,
+  RecetasVeterinario,
+} from './paginas/GestionVeterinario';
+
+import HistorialCliente from './paginas/HistorialCliente';
+import HistorialCompras from './paginas/HistorialCompras';
 import Inicio from './paginas/Inicio';
 import Login from './paginas/Login';
+import MisCitas from './paginas/MisCitas';
+import PerfilAdministrador from './paginas/PerfilAdministrador';
+import PerfilCliente from './paginas/PerfilCliente';
+import PerfilVeterinario from './paginas/PerfilVeterinario';
+import ProductosInventario from './paginas/ProductosInventario';
+import Tienda from './paginas/Tienda';
+
 import Servicios from './paginas/Servicios';
-import Contacto from './paginas/Contacto'; 
+import Contacto from './paginas/Contacto';
 import Blog from './paginas/Blog';
 import Equipo from './paginas/Equipo';
 
-import type {
-  Producto,
-  ProductoCarrito,
-} from './componentes/organismos/CardTienda';
-
-
-import Carrito from './paginas/Carrito';
-import Pago from './paginas/Pago';
-import Productos from './paginas/Productos';
-import ReservarCita from './paginas/ReservarCita';
-import VerProducto from './paginas/VerProducto';
-
-
-
 function App() {
-  return (
-    <div
-      className="d-flex flex-column"
-      style={{
-        minHeight: '100vh',
-        backgroundColor: '#f5f0e8',
-      }}
-    >
-      <Navbar />
+    const [sesion, setSesion] = useState<SesionUsuario | null>(() => {
+        try {
+            const guardada = localStorage.getItem('sesion-veterinaria');
 
-      <Routes>
-        <Route path="/" element={<Inicio />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/servicios" element={<Servicios />} /> 
-        <Route path="/contacto" element={<Contacto />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/equipo" element={<Equipo />} />
-        <Route path="/tienda/*" element={<RutaTienda />} />
-        <Route path="*" element={<div className="p-5 text-center"><h2>Página no encontrada (Error 404)</h2></div>} />
-      </Routes>
-
-      <Footer />
-    </div>
-  );
-}
-
-type PaginaTienda = 'productos' | 'carrito' | 'cita' | 'detalle' | 'pago';
-
-function RutaTienda() {
-  const { search } = useLocation();
-  const parametros = new URLSearchParams(search);
-  const paginaSolicitada = parametros.get('pagina');
-  const servicioSeleccionado = parametros.get('servicio') ?? '';
-  const paginaInicial: PaginaTienda =
-    paginaSolicitada === 'carrito' || paginaSolicitada === 'cita'
-      ? paginaSolicitada
-      : 'productos';
-
-  return (
-    <Tienda
-      key={search}
-      paginaInicial={paginaInicial}
-      servicioSeleccionado={servicioSeleccionado}
-    />
-  );
-}
-
-function Tienda({
-  paginaInicial,
-  servicioSeleccionado,
-}: {
-  paginaInicial: PaginaTienda;
-  servicioSeleccionado: string;
-}) {
-  const [carrito, setCarrito] = useState<ProductoCarrito[]>(() => {
-    try {
-      const guardado = localStorage.getItem('carrito-veterinaria');
-      return guardado ? JSON.parse(guardado) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [pagina, setPagina] = useState<PaginaTienda>(paginaInicial);
-  const [productoSeleccionado, setProductoSeleccionado] =
-    useState<Producto | null>(null);
-
-  useEffect(() => {
-    localStorage.setItem(
-      'carrito-veterinaria',
-      JSON.stringify(carrito)
-    );
-  }, [carrito]);
-
-  function agregarProducto(producto: Producto) {
-    setCarrito((actual) => {
-      const existe = actual.find(
-        (item) => item.codigo === producto.codigo
-      );
-
-      if (existe) {
-        if (producto.stock <= 0) {
-          return actual;
+            return guardada
+                ? JSON.parse(guardada)
+                : null;
+        } catch {
+            return null;
         }
-
-        return actual.map((item) =>
-          item.codigo === producto.codigo
-            ? {
-                ...item,
-                cantidad: Math.min(
-                  item.cantidad + 1,
-                  item.stock
-                ),
-              }
-            : item
-        );
-      }
-
-      if (producto.stock <= 0) {
-        return actual;
-      }
-
-      return [...actual, { ...producto, cantidad: 1 }];
     });
-  }
 
-  function cambiarCantidad(codigo: string, cantidad: number) {
-    if (cantidad <= 0) {
-      eliminarProducto(codigo);
-      return;
+    function iniciarSesion(nuevaSesion: SesionUsuario) {
+        setSesion(nuevaSesion);
+
+        localStorage.setItem(
+            'sesion-veterinaria',
+            JSON.stringify(nuevaSesion)
+        );
     }
 
-    setCarrito((actual) =>
-      actual.map((item) =>
-        item.codigo === codigo
-          ? {
-              ...item,
-              cantidad: Math.min(cantidad, item.stock),
-            }
-          : item
-      )
+    function cerrarSesion() {
+        setSesion(null);
+
+        localStorage.removeItem('sesion-veterinaria');
+    }
+
+    return (
+        <div
+            className="d-flex flex-column"
+            style={{
+                minHeight: '100vh',
+                backgroundColor: '#f5f0e8',
+            }}
+        >
+            <Navbar
+                sesion={sesion}
+                onCerrarSesion={cerrarSesion}
+            />
+
+            <div className="flex-grow-1">
+                <Routes>
+
+                    {/* Rutas principales */}
+
+                    <Route
+                        path="/"
+                        element={<Inicio />}
+                    />
+
+                    <Route
+                        path="/login"
+                        element={
+                            sesion ? (
+                                <Navigate
+                                    to={rutasPerfil[sesion.rol]}
+                                    replace
+                                />
+                            ) : (
+                                <Login onLogin={iniciarSesion} />
+                            )
+                        }
+                    />
+
+                    <Route
+                        path="/tienda/*"
+                        element={<Tienda />}
+                    />
+
+                    {/* Rutas del cliente */}
+
+                    <Route
+                        path="/perfil/cliente"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="cliente"
+                            >
+                                {(usuario) => (
+                                    <PerfilCliente sesion={usuario} />
+                                )}
+                            </PerfilProtegido>
+                        }
+                    />
+
+                    <Route
+                        path="/perfil/cliente/citas"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="cliente"
+                            >
+                                {() => <MisCitas />}
+                            </PerfilProtegido>
+                        }
+                    />
+
+                    <Route
+                        path="/perfil/cliente/historial"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="cliente"
+                            >
+                                {() => <HistorialCliente />}
+                            </PerfilProtegido>
+                        }
+                    />
+
+                    <Route
+                        path="/perfil/cliente/compras"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="cliente"
+                            >
+                                {() => <HistorialCompras />}
+                            </PerfilProtegido>
+                        }
+                    />
+
+                    {/* Rutas del veterinario */}
+
+                    <Route
+                        path="/perfil/veterinario"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="veterinario"
+                            >
+                                {(usuario) => (
+                                    <PerfilVeterinario sesion={usuario} />
+                                )}
+                            </PerfilProtegido>
+                        }
+                    />
+
+                    <Route
+                        path="/perfil/veterinario/agenda"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="veterinario"
+                            >
+                                {() => <AgendaVeterinario />}
+                            </PerfilProtegido>
+                        }
+                    />
+
+                    <Route
+                        path="/perfil/veterinario/recetas"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="veterinario"
+                            >
+                                {() => <RecetasVeterinario />}
+                            </PerfilProtegido>
+                        }
+                    />
+
+                    <Route
+                        path="/perfil/veterinario/historial"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="veterinario"
+                            >
+                                {() => <HistorialVeterinario />}
+                            </PerfilProtegido>
+                        }
+                    />
+
+                    {/* Rutas del administrador */}
+
+                    <Route
+                        path="/perfil/administrador"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="administrador"
+                            >
+                                {(usuario) => (
+                                    <PerfilAdministrador sesion={usuario} />
+                                )}
+                            </PerfilProtegido>
+                        }
+                    />
+
+                    <Route
+                        path="/perfil/administrador/productos"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="administrador"
+                            >
+                                {() => <ProductosInventario />}
+                            </PerfilProtegido>
+                        }
+                    />
+
+                    <Route
+                        path="/perfil/administrador/citas"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="administrador"
+                            >
+                                {() => <CitasAdministrador />}
+                            </PerfilProtegido>
+                        }
+                    />
+
+                    <Route
+                        path="/perfil/administrador/ventas"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="administrador"
+                            >
+                                {() => <VentasAdministrador />}
+                            </PerfilProtegido>
+                        }
+                    />
+
+                    <Route
+                        path="/perfil/administrador/usuarios"
+                        element={
+                            <PerfilProtegido
+                                sesion={sesion}
+                                rol="administrador"
+                            >
+                                {() => <UsuariosAdministrador />}
+                            </PerfilProtegido>
+                        }
+                    />
+                  <Route 
+                    path="/servicios" 
+                    element={<Servicios />} 
+                    />
+                  <Route 
+                    path="/contacto" 
+                    element={<Contacto />} 
+                    />
+                  <Route 
+                    path="/blog" 
+                    element={<Blog />} 
+                    />
+                  <Route 
+                    path="/equipo" 
+                    element={<Equipo />} 
+                    />
+
+                </Routes>
+            </div>
+
+            <Footer />
+        </div>
     );
-  }
-
-  function eliminarProducto(codigo: string) {
-    setCarrito((actual) =>
-      actual.filter((item) => item.codigo !== codigo)
-    );
-  }
-
-  function verDetalle(producto: Producto) {
-    setProductoSeleccionado(producto);
-    setPagina('detalle');
-  }
-
-  function finalizarPago() {
-    setCarrito([]);
-  }
-
-  return (
-    <>
-      {pagina === 'productos' ? (
-        <Productos
-          onVerDetalle={verDetalle}
-          onAgregar={agregarProducto}
-          carrito={carrito}
-          onCambiarCantidad={cambiarCantidad}
-        />
-      ) : pagina === 'detalle' && productoSeleccionado ? (
-        <VerProducto
-          producto={productoSeleccionado}
-          cantidad={
-            carrito.find(
-              (item) =>
-                item.codigo === productoSeleccionado.codigo
-            )?.cantidad ?? 0
-          }
-          onAgregar={agregarProducto}
-          onCambiarCantidad={cambiarCantidad}
-          onVolver={() => setPagina('productos')}
-        />
-      ) : pagina === 'pago' ? (
-        <Pago
-          carrito={carrito}
-          onVolver={() => setPagina('carrito')}
-          onIrProductos={() => setPagina('productos')}
-          onFinalizar={finalizarPago}
-        />
-      ) : pagina === 'cita' ? (
-        <ReservarCita
-          onVolver={() => setPagina('productos')}
-          servicioSeleccionado={servicioSeleccionado}
-        />
-      ) : (
-        <Carrito
-          carrito={carrito}
-          onCambiarCantidad={cambiarCantidad}
-          onEliminar={eliminarProducto}
-          onVolver={() => setPagina('productos')}
-          onPagar={() => setPagina('pago')}
-        />
-      )}
-    </>
-  );
 }
 
 export default App;
