@@ -20,22 +20,18 @@ export default function CardBlog({ post, onSelectPost }: CardBlogProps) {
       <img
         src={post.imagen}
         alt={post.titulo}
-        className="card-img-top"
-        style={{ height: '200px', objectFit: 'cover' }}
+        className="card-img-top imagen-blog"
       />
       <div className="card-body p-4 d-flex flex-column justify-content-between">
         <div>
           <div className="d-flex justify-content-between align-items-center mb-2">
-            <span
-              className="badge text-dark fw-bold"
-              style={{ backgroundColor: '#e8c746' }}
-            >
+            <span className="badge etiqueta-categoria fw-bold">
               {post.categoria}
             </span>
             <small className="text-muted">{post.fecha}</small>
           </div>
 
-          <h5 className="card-title fw-bold text-dark mb-2">{post.titulo}</h5>
+          <h5 className="card-title fw-bold texto-marca mb-2">{post.titulo}</h5>
           <p className="card-text text-muted small mb-3">{post.resumen}</p>
         </div>
 
@@ -44,16 +40,14 @@ export default function CardBlog({ post, onSelectPost }: CardBlogProps) {
           {onSelectPost ? (
             <button
               onClick={() => onSelectPost(post)}
-              className="btn btn-sm text-dark fw-bold"
-              style={{ backgroundColor: '#e8c746' }}
+              className="btn btn-sm btn-tienda"
             >
               Leer más
             </button>
           ) : (
             <a
               href={`#post-${post.id}`}
-              className="btn btn-sm text-dark fw-bold"
-              style={{ backgroundColor: '#e8c746' }}
+              className="btn btn-sm btn-tienda"
             >
               Leer más
             </a>

@@ -24,25 +24,21 @@ export default function CardServicio({ servicio }: CardServicioProps) {
       <div className="card-body p-4 d-flex flex-column justify-content-between">
         <div>
           <div className="d-flex justify-content-between align-items-center mb-2">
-            <span
-              className="badge text-dark fw-bold"
-              style={{ backgroundColor: '#e8c746' }}
-            >
+            <span className="badge etiqueta-categoria fw-bold">
               {servicio.categoria}
             </span>
             <small className="text-muted">⏱️ {servicio.duracion}</small>
           </div>
 
-          <h4 className="card-title fw-bold text-dark mb-2">{servicio.titulo}</h4>
+          <h4 className="card-title fw-bold texto-marca mb-2">{servicio.titulo}</h4>
           <p className="card-text text-muted small mb-3">{servicio.descripcion}</p>
         </div>
 
         <div className="pt-3 border-top d-flex justify-content-between align-items-center">
-          <span className="fw-bold fs-5 text-dark">{servicio.precio}</span>
+          <span className="fw-bold fs-5 texto-marca">{servicio.precio}</span>
           <a
             href="/tienda?pagina=cita"
-            className="btn btn-sm text-dark fw-bold"
-            style={{ backgroundColor: '#e8c746' }}
+            className="btn btn-sm btn-tienda"
           >
             Reservar hora
           </a>

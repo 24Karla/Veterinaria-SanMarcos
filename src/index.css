@@ -11,6 +11,9 @@ body { min-width: 320px; margin: 0; background: #fffaf0; }
 .btn-tienda { border: 0; border-radius: .75rem; color: #2b180d; font-weight: 800; background: #ffd224; }
 .btn-tienda:hover, .btn-tienda:focus { color: #2b180d; background: #efbd00; }
 .btn-tienda:disabled { color: #806b51; background: #f5dfa0; opacity: 1; cursor: not-allowed; }
+.etiqueta-categoria { background: #ffd224; color: #2b180d; }
+.texto-marca { color: #2b180d !important; }
+.imagen-blog { height: 200px; object-fit: contain; background: #fffaf0; }
 .btn-carrito { display: grid; width: 42px; height: 42px; place-items: center; padding: 0; border: 1px solid #e5d8c6; border-radius: .75rem; color: #2b180d; background: #fff; }
 .btn-carrito svg { width: 21px; height: 21px; }
 .btn-carrito:hover, .btn-carrito:focus { border-color: #ffd224; background: #ffebad; }

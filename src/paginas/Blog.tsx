@@ -16,14 +16,13 @@ export default function Blog() {
             ← Volver al Blog
           </button>
 
-          <span
-            className="badge text-dark fw-bold mb-2 d-inline-block"
-            style={{ backgroundColor: '#e8c746' }}
-          >
-            {postSeleccionado.categoria}
-          </span>
+          <div className="mb-3">
+            <span className="badge etiqueta-categoria fw-bold">
+              {postSeleccionado.categoria}
+            </span>
+          </div>
 
-          <h1 className="fw-bold text-dark mb-3">{postSeleccionado.titulo}</h1>
+          <h1 className="fw-bold texto-marca mb-3">{postSeleccionado.titulo}</h1>
 
           <div className="d-flex align-items-center text-muted mb-4 small">
             <span className="me-3">✍️ Por <strong>{postSeleccionado.autor}</strong></span>
@@ -38,7 +37,7 @@ export default function Blog() {
           />
 
           <div className="fs-5 text-secondary leading-relaxed">
-            <p className="fw-bold text-dark mb-3">{postSeleccionado.resumen}</p>
+            <p className="fw-bold texto-marca mb-3">{postSeleccionado.resumen}</p>
             <p>
               En la Veterinaria San Marcos nos preocupamos día a día por la salud y bienestar de tus mascotas.
               Mantener sus chequeos al día, asegurar una correcta nutrición y reaccionar a tiempo ante cualquier síntoma
@@ -53,7 +52,7 @@ export default function Blog() {
       ) : (
         <>
           <div className="mb-4">
-            <h2 className="fw-bold text-dark">Blog de Salud y Cuidados Vet</h2>
+            <h2 className="fw-bold texto-marca">Blog de Salud y Cuidados Vet</h2>
             <p className="text-muted">
               Consejos, artículos y novedades preparados por nuestros médicos veterinarios.
             </p>

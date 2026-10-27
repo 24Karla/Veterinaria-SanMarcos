@@ -23,13 +23,10 @@ export default function CardEquipo({ miembro }: CardEquipoProps) {
       />
       <div className="card-body p-4 d-flex flex-column justify-content-between">
         <div>
-          <span
-            className="badge text-dark fw-bold mb-2"
-            style={{ backgroundColor: '#e8c746' }}
-          >
+          <span className="badge etiqueta-categoria fw-bold mb-2">
             {miembro.especialidad}
           </span>
-          <h4 className="card-title fw-bold text-dark mb-1">{miembro.nombre}</h4>
+          <h4 className="card-title fw-bold texto-marca mb-1">{miembro.nombre}</h4>
           <p className="text-muted small fw-semibold mb-3">{miembro.cargo}</p>
           <p className="card-text text-muted small">{miembro.bio}</p>
         </div>

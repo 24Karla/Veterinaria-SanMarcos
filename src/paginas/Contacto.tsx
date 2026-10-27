@@ -18,6 +18,20 @@ export default function PaginaContacto() {
       return;
     }
 
+    const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!correoValido.test(correo.trim())) {
+      alert('Por favor ingresa un correo electrónico válido');
+      return;
+    }
+
+    const telefonoValido = /^\+?[0-9]+$/;
+
+    if (telefono.trim() && !telefonoValido.test(telefono.trim())) {
+      alert('El teléfono solo puede contener números y un + inicial');
+      return;
+    }
+
     setEnviado(true);
   };
 
@@ -79,8 +93,7 @@ export default function PaginaContacto() {
               <div>
                 <button
                   type="button"
-                  className="btn text-dark fw-bold"
-                  style={{ backgroundColor: '#e8c746' }}
+                  className="btn btn-tienda"
                   onClick={() => {
                     setNombre('');
                     setCorreo('');
@@ -95,7 +108,7 @@ export default function PaginaContacto() {
             </div>
           ) : (
             <form onSubmit={manejarEnvio} noValidate className="card p-4 shadow-sm border-0 text-start bg-white rounded-3">
-              <h3 className="mb-3 text-dark fw-bold">Envíanos un mensaje</h3>
+              <h3 className="mb-3 texto-marca fw-bold">Envíanos un mensaje</h3>
 
               <CampoTexto
                 etiqueta="Nombre completo *"
@@ -150,8 +163,7 @@ export default function PaginaContacto() {
 
               <button
                 type="submit"
-                className="btn text-dark fw-bold w-100 mt-2 py-2"
-                style={{ backgroundColor: '#e8c746', borderColor: '#e8c746' }}
+                className="btn btn-tienda w-100 mt-2 py-2"
               >
                 Enviar Mensaje
               </button>
