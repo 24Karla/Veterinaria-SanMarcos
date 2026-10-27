@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom';
+
 export interface Servicio {
   id: number;
   titulo: string;
@@ -10,6 +12,10 @@ export interface Servicio {
 
 interface CardServicioProps {
   servicio: Servicio;
+}
+
+export function crearRutaReserva(titulo: string) {
+  return `/tienda?pagina=cita&servicio=${encodeURIComponent(titulo)}`;
 }
 
 export default function CardServicio({ servicio }: CardServicioProps) {
@@ -37,7 +43,7 @@ export default function CardServicio({ servicio }: CardServicioProps) {
         <div className="pt-3 border-top d-flex justify-content-between align-items-center">
           <span className="fw-bold fs-5 texto-marca">{servicio.precio}</span>
           <Link
-            to={`/tienda?pagina=cita&servicio=${encodeURIComponent(servicio.titulo)}`}
+            to={crearRutaReserva(servicio.titulo)}
             className="btn btn-sm btn-tienda"
           >
             Reservar hora
@@ -47,4 +53,3 @@ export default function CardServicio({ servicio }: CardServicioProps) {
     </div>
   );
 }
-import { Link } from 'react-router-dom';

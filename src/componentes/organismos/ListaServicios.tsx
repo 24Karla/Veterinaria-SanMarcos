@@ -2,7 +2,7 @@ import { useState } from 'react';
 import CardServicio from './CardServicio';
 import type { Servicio } from './CardServicio';
 
-const SERVICIOS_MOCK: Servicio[] = [
+export const SERVICIOS_MOCK: Servicio[] = [
   // --- CONSULTAS ---
   {
     id: 1,
@@ -295,12 +295,16 @@ const SERVICIOS_MOCK: Servicio[] = [
   }
 ];
 
+export function filtrarServicios(categoria: string) {
+  return categoria === 'Todas'
+    ? SERVICIOS_MOCK
+    : SERVICIOS_MOCK.filter((servicio) => servicio.categoria === categoria);
+}
+
 export default function ListaServicios() {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
   const categorias = ['Todas', ...new Set(SERVICIOS_MOCK.map((servicio) => servicio.categoria))];
-  const serviciosFiltrados = categoriaSeleccionada === 'Todas'
-    ? SERVICIOS_MOCK
-    : SERVICIOS_MOCK.filter((servicio) => servicio.categoria === categoriaSeleccionada);
+  const serviciosFiltrados = filtrarServicios(categoriaSeleccionada);
 
   return (
     <>

@@ -5,7 +5,7 @@ interface ListaBlogProps {
   onSelectPost?: (post: PublicacionBlog) => void;
 }
 
-const BLOG_MOCK: PublicacionBlog[] = [
+export const BLOG_MOCK: PublicacionBlog[] = [
   {
     id: 1,
     titulo: 'Cuidados esenciales para tu perro en época de verano',

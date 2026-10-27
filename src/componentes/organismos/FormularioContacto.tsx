@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import CampoTexto from '../moleculas/CampoTexto';
 import CampoAreaTexto from '../moleculas/CampoAreaTexto';
+import { esCorreoValido, esTelefonoValido } from '../moleculas/validacionesContacto';
 
 export default function FormularioContacto() {
   const [nombre, setNombre] = useState('');
@@ -18,16 +19,12 @@ export default function FormularioContacto() {
       return;
     }
 
-    const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!correoValido.test(correo.trim())) {
+    if (!esCorreoValido(correo)) {
       alert('Por favor ingresa un correo electrónico válido');
       return;
     }
 
-    const telefonoValido = /^\+?[0-9]+$/;
-
-    if (telefono.trim() && !telefonoValido.test(telefono.trim())) {
+    if (!esTelefonoValido(telefono)) {
       alert('El teléfono solo puede contener números y un + inicial');
       return;
     }

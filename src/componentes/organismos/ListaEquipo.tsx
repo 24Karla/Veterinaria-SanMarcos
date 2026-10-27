@@ -10,7 +10,7 @@ export interface MiembroEquipo {
   imagen: string;
 }
 
-const EQUIPO_MOCK: MiembroEquipo[] = [
+export const EQUIPO_MOCK: MiembroEquipo[] = [
   {
     id: 1,
     nombre: 'Dra. María Paz Fernández',
@@ -22,7 +22,7 @@ const EQUIPO_MOCK: MiembroEquipo[] = [
   },
   {
     id: 2,
-    nombre: 'Dr. Carlos Silva Reyes',
+    nombre: 'Dr. Fabián',
     cargo: 'Médico Veterinario',
     especialidad: 'Dermatología y Felinos',
     experiencia: '8 años',
