@@ -33,6 +33,11 @@ import PerfilVeterinario from './paginas/PerfilVeterinario';
 import ProductosInventario from './paginas/ProductosInventario';
 import Tienda from './paginas/Tienda';
 
+import Servicios from './paginas/Servicios';
+import Contacto from './paginas/Contacto';
+import Blog from './paginas/Blog';
+import Equipo from './paginas/Equipo';
+
 function App() {
     const [sesion, setSesion] = useState<SesionUsuario | null>(() => {
         try {
@@ -269,6 +274,22 @@ function App() {
                                 {() => <UsuariosAdministrador />}
                             </PerfilProtegido>
                         }
+                    />
+                  <Route 
+                    path="/servicios" 
+                    element={<Servicios />} 
+                    />
+                  <Route 
+                    path="/contacto" 
+                    element={<Contacto />} 
+                    />
+                  <Route 
+                    path="/blog" 
+                    element={<Blog />} 
+                    />
+                  <Route 
+                    path="/equipo" 
+                    element={<Equipo />} 
                     />
 
                 </Routes>

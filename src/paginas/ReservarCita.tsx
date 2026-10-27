@@ -5,6 +5,7 @@ import BotonVolver from '../componentes/atomos/BotonVolver';
 interface Props {
     onVolver: () => void;
     textoVolver?: string;
+    servicioSeleccionado?: string;
 }
 
 interface DatosCita {
@@ -39,6 +40,7 @@ const horarios = [
 export default function ReservarCita({
     onVolver,
     textoVolver = 'Volver a productos',
+    servicioSeleccionado,
 }: Props) {
     const [datos, setDatos] = useState<DatosCita>(datosIniciales);
     const [reservada, setReservada] = useState(false);
@@ -144,7 +146,12 @@ export default function ReservarCita({
             <p className="cita-subtitulo">
                 Agenda una atención para tu mascota.
             </p>
-
+        
+            {servicioSeleccionado && (
+                <p className="mb-4 fw-bold texto-marca">
+                    Servicio seleccionado: {servicioSeleccionado}
+                </p>
+            )}
             <form
                 className="formulario-cita"
                 noValidate
