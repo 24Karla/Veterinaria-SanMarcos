@@ -183,7 +183,7 @@ function Inicio() {
                                         backgroundColor: '#e8c746',
                                     }}
                                 >
-                                    Exanenes
+                                    Exámenes
                                 </Link>
                             </div>
                         </div>
