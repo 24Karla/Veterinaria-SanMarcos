@@ -34,8 +34,8 @@ export default function Blog() {
             <h1 className="fw-bold texto-marca mb-3">{postSeleccionado.titulo}</h1>
 
             <div className="d-flex align-items-center text-muted mb-4 small">
-              <span className="me-3">✍️ Por <strong>{postSeleccionado.autor}</strong></span>
-              <span>📅 {postSeleccionado.fecha}</span>
+              <span className="me-3">Por <strong>{postSeleccionado.autor}</strong></span>
+              <span>Fecha: {postSeleccionado.fecha}</span>
             </div>
 
             <div className="fs-5 text-secondary leading-relaxed">

@@ -27,7 +27,7 @@ export default function CardServicio({ servicio }: CardServicioProps) {
             <span className="badge etiqueta-categoria fw-bold">
               {servicio.categoria}
             </span>
-            <small className="text-muted">⏱️ {servicio.duracion}</small>
+            <small className="text-muted">Duración: {servicio.duracion}</small>
           </div>
 
           <h4 className="card-title fw-bold texto-marca mb-2">{servicio.titulo}</h4>
@@ -36,14 +36,15 @@ export default function CardServicio({ servicio }: CardServicioProps) {
 
         <div className="pt-3 border-top d-flex justify-content-between align-items-center">
           <span className="fw-bold fs-5 texto-marca">{servicio.precio}</span>
-          <a
-            href="/tienda?pagina=cita"
+          <Link
+            to={`/tienda?pagina=cita&servicio=${encodeURIComponent(servicio.titulo)}`}
             className="btn btn-sm btn-tienda"
           >
             Reservar hora
-          </a>
+          </Link>
         </div>
       </div>
     </div>
   );
 }
+import { Link } from 'react-router-dom';

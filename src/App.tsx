@@ -56,16 +56,30 @@ type PaginaTienda = 'productos' | 'carrito' | 'cita' | 'detalle' | 'pago';
 
 function RutaTienda() {
   const { search } = useLocation();
-  const paginaSolicitada = new URLSearchParams(search).get('pagina');
+  const parametros = new URLSearchParams(search);
+  const paginaSolicitada = parametros.get('pagina');
+  const servicioSeleccionado = parametros.get('servicio') ?? '';
   const paginaInicial: PaginaTienda =
     paginaSolicitada === 'carrito' || paginaSolicitada === 'cita'
       ? paginaSolicitada
       : 'productos';
 
-  return <Tienda key={search} paginaInicial={paginaInicial} />;
+  return (
+    <Tienda
+      key={search}
+      paginaInicial={paginaInicial}
+      servicioSeleccionado={servicioSeleccionado}
+    />
+  );
 }
 
-function Tienda({ paginaInicial }: { paginaInicial: PaginaTienda }) {
+function Tienda({
+  paginaInicial,
+  servicioSeleccionado,
+}: {
+  paginaInicial: PaginaTienda;
+  servicioSeleccionado: string;
+}) {
   const [carrito, setCarrito] = useState<ProductoCarrito[]>(() => {
     try {
       const guardado = localStorage.getItem('carrito-veterinaria');
@@ -183,6 +197,7 @@ function Tienda({ paginaInicial }: { paginaInicial: PaginaTienda }) {
       ) : pagina === 'cita' ? (
         <ReservarCita
           onVolver={() => setPagina('productos')}
+          servicioSeleccionado={servicioSeleccionado}
         />
       ) : (
         <Carrito

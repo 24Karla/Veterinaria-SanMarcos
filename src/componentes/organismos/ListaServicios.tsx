@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import CardServicio from './CardServicio';
 import type { Servicio } from './CardServicio';
 
@@ -295,13 +296,39 @@ const SERVICIOS_MOCK: Servicio[] = [
 ];
 
 export default function ListaServicios() {
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('Todas');
+  const categorias = ['Todas', ...new Set(SERVICIOS_MOCK.map((servicio) => servicio.categoria))];
+  const serviciosFiltrados = categoriaSeleccionada === 'Todas'
+    ? SERVICIOS_MOCK
+    : SERVICIOS_MOCK.filter((servicio) => servicio.categoria === categoriaSeleccionada);
+
   return (
-    <div className="row g-4">
-      {SERVICIOS_MOCK.map((servicio) => (
-        <div key={servicio.id} className="col-md-6 col-lg-4">
-          <CardServicio servicio={servicio} />
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="mb-4" style={{ maxWidth: '320px' }}>
+        <label htmlFor="categoria-servicio" className="form-label fw-bold texto-marca">
+          Filtrar por categoría
+        </label>
+        <select
+          id="categoria-servicio"
+          className="form-select"
+          value={categoriaSeleccionada}
+          onChange={(event) => setCategoriaSeleccionada(event.target.value)}
+        >
+          {categorias.map((categoria) => (
+            <option key={categoria} value={categoria}>
+              {categoria === 'Todas' ? 'Todas las categorías' : categoria}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="row g-4">
+        {serviciosFiltrados.map((servicio) => (
+          <div key={servicio.id} className="col-md-6 col-lg-4">
+            <CardServicio servicio={servicio} />
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
