@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import CampoTexto from '../moleculas/CampoTexto';
 import CampoAreaTexto from '../moleculas/CampoAreaTexto';
-import { esCorreoValido, esTelefonoValido } from '../moleculas/validacionesContacto';
+
+function esCorreoValido(correo: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim());
+}
+
+function esTelefonoValido(telefono: string) {
+  return telefono.trim() === '' || /^\+?[0-9]+$/.test(telefono.trim());
+}
 
 export default function FormularioContacto() {
   const [nombre, setNombre] = useState('');
