@@ -1,4 +1,6 @@
+
 import { useState } from 'react';
+import type { FormEvent } from 'react';
 import CampoTexto from '../componentes/moleculas/CampoTexto';
 import CampoAreaTexto from '../componentes/moleculas/CampoAreaTexto';
 
@@ -17,8 +19,9 @@ export default function PaginaContacto() {
   const [asunto, setAsunto] = useState('Consulta General');
   const [mensaje, setMensaje] = useState('');
   const [enviado, setEnviado] = useState(false);
+  const [cargando, setCargando] = useState(false);
 
-  const manejarEnvio = (e: React.FormEvent<HTMLFormElement>) => {
+  const manejarEnvio = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!nombre.trim() || !correo.trim() || !mensaje.trim()) {
@@ -36,19 +39,64 @@ export default function PaginaContacto() {
       return;
     }
 
-    setEnviado(true);
+    try {
+      setCargando(true);
+
+      const respuesta = await fetch(
+        'http://127.0.0.1:8082/api/contactos',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nombreCompleto: nombre.trim(),
+            correo: correo.trim(),
+            telefono: telefono.trim(),
+            asunto,
+            mensaje: mensaje.trim(),
+          }),
+        }
+      );
+
+      if (!respuesta.ok) {
+        alert(`No se pudo guardar el mensaje. Error ${respuesta.status}`);
+        return;
+      }
+
+      setEnviado(true);
+
+    } catch (error) {
+      console.error('Error al enviar el contacto:', error);
+      alert('No se pudo conectar con el Backend. Comprueba que esté iniciado.');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  const limpiarFormulario = () => {
+    setNombre('');
+    setCorreo('');
+    setTelefono('');
+    setAsunto('Consulta General');
+    setMensaje('');
+    setEnviado(false);
   };
 
   return (
     <section className="container my-4 px-3">
       <div className="text-start mb-4">
-        <h2 className="fw-bold text-dark">Contacto - Veterinaria San Marcos</h2>
+        <h2 className="fw-bold text-dark">
+          Contacto - Veterinaria San Marcos
+        </h2>
         <p className="text-muted">
-          Estamos ubicados en Rancagua. Contáctanos si tienes consultas o necesitas atención médica para tu mascota.
+          Estamos ubicados en Rancagua. Contáctanos si tienes consultas
+          o necesitas atención médica para tu mascota.
         </p>
       </div>
 
       <div className="row g-4 mb-5">
+
         {/* Información de Atención */}
         <div className="col-lg-5">
           <div
@@ -56,63 +104,83 @@ export default function PaginaContacto() {
             style={{ backgroundColor: '#2b4c3f' }}
           >
             <div>
-              <h3 className="mb-4 text-white fw-bold">Información de Atención</h3>
+              <h3 className="mb-4 text-white fw-bold">
+                Información de Atención
+              </h3>
 
               <div className="mb-3">
                 <strong>📍 Ubicación:</strong>
-                <p className="mb-0 text-white-50">Av. Brasil 2140, Rancagua</p>
+                <p className="mb-0 text-white-50">
+                  Av. Brasil 2140, Rancagua
+                </p>
               </div>
 
               <div className="mb-3">
                 <strong>📞 Teléfono:</strong>
-                <p className="mb-0 text-white-50">+56 9 1234 5678</p>
+                <p className="mb-0 text-white-50">
+                  +56 9 1234 5678
+                </p>
               </div>
 
               <div className="mb-3">
                 <strong>✉️ Correo electrónico:</strong>
-                <p className="mb-0 text-white-50">contacto@veterinariasanmarcos.cl</p>
+                <p className="mb-0 text-white-50">
+                  contacto@veterinariasanmarcos.cl
+                </p>
               </div>
 
               <div className="mb-3">
                 <strong>⏰ Horarios:</strong>
-                <p className="mb-1 text-white-50">Lunes a Viernes: 13:30 - 19:30 hrs</p>
-                <p className="mb-0 text-white-50">Sábados: 09:00 - 13:00 hrs</p>
+                <p className="mb-1 text-white-50">
+                  Lunes a Viernes: 13:30 - 19:30 hrs
+                </p>
+                <p className="mb-0 text-white-50">
+                  Sábados: 09:00 - 13:00 hrs
+                </p>
               </div>
             </div>
 
             <div className="pt-3 border-top border-white-50">
-              <small className="text-white-50">Atención médica para Perros, Gatos, Conejos y Aves.</small>
+              <small className="text-white-50">
+                Atención médica para Perros, Gatos, Conejos y Aves.
+              </small>
             </div>
           </div>
         </div>
 
-        {/* Formulario de Contacto integrado */}
+        {/* Formulario de Contacto */}
         <div className="col-lg-7">
           {enviado ? (
             <div className="alert alert-success text-center p-4 rounded-3 shadow-sm border-0 h-100 d-flex flex-column justify-content-center">
-              <h4 className="fw-bold">¡Mensaje enviado con éxito!</h4>
+              <h4 className="fw-bold">
+                ¡Mensaje enviado con éxito!
+              </h4>
+
               <p className="mb-3">
-                Gracias por escribir a <strong>Veterinaria San Marcos</strong>. Te responderemos a la brevedad.
+                Gracias por escribir a{' '}
+                <strong>Veterinaria San Marcos</strong>.
+                Te responderemos a la brevedad.
               </p>
+
               <div>
                 <button
                   type="button"
                   className="btn btn-tienda"
-                  onClick={() => {
-                    setNombre('');
-                    setCorreo('');
-                    setTelefono('');
-                    setMensaje('');
-                    setEnviado(false);
-                  }}
+                  onClick={limpiarFormulario}
                 >
                   Enviar otro mensaje
                 </button>
               </div>
             </div>
           ) : (
-            <form onSubmit={manejarEnvio} noValidate className="card p-4 shadow-sm border-0 text-start bg-white rounded-3">
-              <h3 className="mb-3 texto-marca fw-bold">Envíanos un mensaje</h3>
+            <form
+              onSubmit={manejarEnvio}
+              noValidate
+              className="card p-4 shadow-sm border-0 text-start bg-white rounded-3"
+            >
+              <h3 className="mb-3 texto-marca fw-bold">
+                Envíanos un mensaje
+              </h3>
 
               <CampoTexto
                 etiqueta="Nombre completo *"
@@ -144,16 +212,27 @@ export default function PaginaContacto() {
               </div>
 
               <div className="mb-3 text-start">
-                <label className="form-label fw-bold">Asunto</label>
+                <label className="form-label fw-bold">
+                  Asunto
+                </label>
+
                 <select
                   className="form-select"
                   value={asunto}
                   onChange={(e) => setAsunto(e.target.value)}
                 >
-                  <option value="Consulta General">Consulta General</option>
-                  <option value="Solicitud de Cita">Solicitud de Cita</option>
-                  <option value="Historial y Vacunas">Historial y Vacunas</option>
-                  <option value="Urgencia Veterinaria">Urgencia Veterinaria</option>
+                  <option value="Consulta General">
+                    Consulta General
+                  </option>
+                  <option value="Solicitud de Cita">
+                    Solicitud de Cita
+                  </option>
+                  <option value="Historial y Vacunas">
+                    Historial y Vacunas
+                  </option>
+                  <option value="Urgencia Veterinaria">
+                    Urgencia Veterinaria
+                  </option>
                 </select>
               </div>
 
@@ -168,8 +247,9 @@ export default function PaginaContacto() {
               <button
                 type="submit"
                 className="btn btn-tienda w-100 mt-2 py-2"
+                disabled={cargando}
               >
-                Enviar Mensaje
+                {cargando ? 'Enviando...' : 'Enviar Mensaje'}
               </button>
             </form>
           )}
@@ -179,11 +259,19 @@ export default function PaginaContacto() {
       {/* Mapa de Ubicación */}
       <div className="row">
         <div className="col-12 text-start mb-3">
-          <h3 className="fw-bold text-dark">Nuestra Ubicación</h3>
-          <p className="text-muted">Encuéntranos en Rancagua</p>
+          <h3 className="fw-bold text-dark">
+            Nuestra Ubicación
+          </h3>
+          <p className="text-muted">
+            Encuéntranos en Rancagua
+          </p>
         </div>
+
         <div className="col-12">
-          <div className="rounded-3 overflow-hidden shadow-sm border" style={{ height: '350px' }}>
+          <div
+            className="rounded-3 overflow-hidden shadow-sm border"
+            style={{ height: '350px' }}
+          >
             <iframe
               title="Ubicación Veterinaria San Marcos"
               src="https://maps.google.com/maps?q=-34.17013,-70.74312&z=15&output=embed"
