@@ -2,6 +2,8 @@ import { useState } from 'react';
 import CampoTexto from '../moleculas/CampoTexto';
 import CampoAreaTexto from '../moleculas/CampoAreaTexto';
 
+const urlContactos = import.meta.env.VITE_CONTACTOS_URL || 'http://127.0.0.1:8082/api/contactos';
+
 function esCorreoValido(correo: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim());
 }
@@ -17,9 +19,14 @@ export default function FormularioContacto() {
   const [asunto, setAsunto] = useState('Consulta General');
   const [mensaje, setMensaje] = useState('');
   const [enviado, setEnviado] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [errorEnvio, setErrorEnvio] = useState('');
 
-  const manejarEnvio = (e: React.FormEvent<HTMLFormElement>) => {
+  const manejarEnvio = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (enviando) return;
+    setErrorEnvio('');
 
     if (!nombre.trim() || !correo.trim() || !mensaje.trim()) {
       alert('Por favor completa los campos obligatorios (*)');
@@ -36,19 +43,46 @@ export default function FormularioContacto() {
       return;
     }
 
-    setEnviado(true);
+    setEnviando(true);
+    try {
+      const respuesta = await fetch(urlContactos, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombreCompleto: nombre.trim(),
+          correo: correo.trim(),
+          telefono: telefono.trim(),
+          asunto,
+          mensaje: mensaje.trim(),
+        }),
+      });
+
+      if (respuesta.status === 400) {
+        setErrorEnvio('Revisa el formato y la longitud de los datos antes de volver a enviar.');
+        return;
+      }
+      if (!respuesta.ok) {
+        throw new Error('No se pudo guardar el contacto.');
+      }
+
+      setEnviado(true);
+    } catch {
+      setErrorEnvio('No pudimos confirmar el envío. Inténtalo de nuevo en unos minutos.');
+    } finally {
+      setEnviando(false);
+    }
   };
 
   if (enviado) {
     return (
-      <div className="alert alert-success text-center p-4 rounded-3 shadow-sm border-0">
+      <div className="alert alert-success text-center p-4 rounded-3 shadow-sm border-0 h-100 d-flex flex-column justify-content-center">
         <h4 className="fw-bold">¡Mensaje enviado con éxito!</h4>
         <p className="mb-3">
           Gracias por escribir a <strong>Veterinaria San Marcos</strong>. Te responderemos a la brevedad.
         </p>
         <button
           type="button"
-          className="btn btn-tienda"
+          className="btn btn-tienda align-self-center"
           onClick={() => {
             setNombre('');
             setCorreo('');
@@ -94,7 +128,7 @@ export default function FormularioContacto() {
             nombre="telefono"
             valor={telefono}
             alCambiar={setTelefono}
-            placeholder="+56 9 1234 5678"
+            placeholder="+56912345678"
           />
         </div>
       </div>
@@ -122,11 +156,14 @@ export default function FormularioContacto() {
         placeholder="Escribe tu consulta aquí..."
       />
 
+      {errorEnvio && <p className="alert alert-danger mb-2" role="alert">{errorEnvio}</p>}
+
       <button
         type="submit"
         className="btn btn-tienda w-100 mt-2 py-2"
+        disabled={enviando}
       >
-        Enviar Mensaje
+        {enviando ? 'Enviando…' : 'Enviar Mensaje'}
       </button>
     </form>
   );
