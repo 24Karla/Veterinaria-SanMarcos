@@ -13,6 +13,13 @@ import {
     type ContactoApi,
 } from '../servicios/api';
 
+const formatoFechaHorario = new Intl.DateTimeFormat('es-CL', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+});
+
 export function CitasAdministrador() {
     const [citas, setCitas] = useState<CitaApi[]>([]);
     const [horarios, setHorarios] = useState<HorarioApi[]>([]);
@@ -21,6 +28,9 @@ export function CitasAdministrador() {
     const [error, setError] = useState('');
     const [ocupado, setOcupado] = useState(false);
     const [datos, setDatos] = useState({ fecha: '', hora: '', veterinario: '' });
+    const horariosOrdenados = [...horarios].sort((a, b) =>
+        `${a.fecha}T${a.hora}`.localeCompare(`${b.fecha}T${b.hora}`),
+    );
 
     useEffect(() => {
         Promise.all([
@@ -105,62 +115,89 @@ export function CitasAdministrador() {
                 <p>Organiza las atenciones y disponibilidad de la veterinaria.</p>
             </header>
             <EstadoApi cargando={cargando} error={error} />
-            <form className="perfil-tarjeta mb-4" onSubmit={crearHorario}>
+            <form className="perfil-tarjeta agenda-formulario mb-4" onSubmit={crearHorario}>
                 <h2>Habilitar un horario</h2>
-                <label htmlFor="fecha-horario">Fecha</label>
-                <input
-                    className="form-control"
-                    id="fecha-horario"
-                    type="date"
-                    required
-                    value={datos.fecha}
-                    onChange={(event) =>
-                        setDatos({ ...datos, fecha: event.target.value })
-                    }
-                />
-                <label htmlFor="hora-horario">Hora</label>
-                <input
-                    className="form-control"
-                    id="hora-horario"
-                    type="time"
-                    required
-                    value={datos.hora}
-                    onChange={(event) => setDatos({ ...datos, hora: event.target.value })}
-                />
-                <label htmlFor="vet-horario">Veterinario</label>
-                <select
-                    className="form-select"
-                    id="vet-horario"
-                    required
-                    value={datos.veterinario}
-                    onChange={(event) =>
-                        setDatos({ ...datos, veterinario: event.target.value })
-                    }
-                >
-                    <option value="">Selecciona un veterinario</option>
-                    {equipo.map((usuario) => (
-                        <option key={usuario.id} value={usuario.nombre}>
-                            {usuario.nombre}
-                        </option>
-                    ))}
-                </select>
-                <button className="btn btn-tienda mt-3" disabled={ocupado}>
-                    Crear horario
-                </button>
-            </form>
-            <h2>Horarios disponibles</h2>
-            {horarios.map((horario) => (
-                <div className="perfil-tarjeta mb-2" key={horario.id}>
-                    {horario.fecha} · {horario.hora.slice(0, 5)} · {horario.veterinario}
-                    <button
-                        className="btn btn-eliminar ms-3"
-                        disabled={ocupado}
-                        onClick={() => desactivarHorario(horario.id)}
-                    >
-                        Desactivar
+                <div className="agenda-formulario-campos">
+                    <div>
+                        <label className="form-label" htmlFor="fecha-horario">Fecha</label>
+                        <input
+                            className="form-control"
+                            id="fecha-horario"
+                            type="date"
+                            required
+                            value={datos.fecha}
+                            onChange={(event) =>
+                                setDatos({ ...datos, fecha: event.target.value })
+                            }
+                        />
+                    </div>
+                    <div>
+                        <label className="form-label" htmlFor="hora-horario">Hora</label>
+                        <input
+                            className="form-control"
+                            id="hora-horario"
+                            type="time"
+                            required
+                            value={datos.hora}
+                            onChange={(event) => setDatos({ ...datos, hora: event.target.value })}
+                        />
+                    </div>
+                    <div className="agenda-formulario-veterinario">
+                        <label className="form-label" htmlFor="vet-horario">Veterinario</label>
+                        <select
+                            className="form-select"
+                            id="vet-horario"
+                            required
+                            value={datos.veterinario}
+                            onChange={(event) =>
+                                setDatos({ ...datos, veterinario: event.target.value })
+                            }
+                        >
+                            <option value="">Selecciona un veterinario</option>
+                            {equipo.map((usuario) => (
+                                <option key={usuario.id} value={usuario.nombre}>
+                                    {usuario.nombre}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <button type="submit" className="btn btn-tienda" disabled={ocupado}>
+                        Crear horario
                     </button>
                 </div>
-            ))}
+            </form>
+            <section aria-labelledby="titulo-horarios">
+                <h2 className="agenda-titulo" id="titulo-horarios">Horarios disponibles</h2>
+                {!cargando && !error && horarios.length === 0 && (
+                    <p className="agenda-horarios-vacios">Todavía no hay horarios disponibles.</p>
+                )}
+                {horarios.length > 0 && (
+                    <ul className="agenda-horarios">
+                        {horariosOrdenados.map((horario) => {
+                            const fecha = formatoFechaHorario.format(new Date(horario.fecha));
+                            const hora = horario.hora.slice(0, 5);
+                            return (
+                                <li className="agenda-horario" key={horario.id}>
+                                    <div className="agenda-horario-fecha">
+                                        <time dateTime={horario.fecha}>{fecha}</time>
+                                        <time dateTime={hora}>{hora}</time>
+                                    </div>
+                                    <span className="agenda-horario-veterinario">{horario.veterinario}</span>
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-outline-danger"
+                                        aria-label={`Desactivar horario del ${fecha} a las ${hora} con ${horario.veterinario}`}
+                                        disabled={ocupado}
+                                        onClick={() => desactivarHorario(horario.id)}
+                                    >
+                                        Desactivar
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+            </section>
             <h2 className="mt-4">Citas registradas</h2>
             {!cargando && !error && citas.length === 0 && (
                 <p>No hay citas registradas.</p>

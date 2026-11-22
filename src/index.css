@@ -347,6 +347,116 @@ footer {
     flex: 1;
 }
 
+.agenda-formulario {
+    min-height: 0;
+    gap: 1rem;
+}
+
+.agenda-formulario-campos {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, .75fr) minmax(0, 1.6fr) auto;
+    align-items: end;
+    gap: .75rem;
+}
+
+.agenda-formulario-campos .form-label {
+    margin-bottom: .3rem;
+    color: #5e4b38;
+    font-size: .875rem;
+    font-weight: 700;
+}
+
+.agenda-formulario-campos .btn {
+    min-height: 38px;
+}
+
+.agenda-titulo {
+    margin-bottom: .65rem;
+    color: #2b180d;
+    font-size: 1.35rem;
+    font-weight: 800;
+}
+
+.agenda-horarios,
+.agenda-horarios-vacios {
+    margin: 0;
+    padding: 0 1rem;
+    border: 1px solid #ece2d2;
+    border-radius: 1rem;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(82, 55, 12, .05);
+}
+
+.agenda-horarios {
+    list-style: none;
+}
+
+.agenda-horarios-vacios {
+    padding: 1rem;
+    color: #725f4d;
+}
+
+.agenda-horario {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) minmax(0, 1.4fr) auto;
+    align-items: center;
+    gap: .75rem 1rem;
+    padding: .75rem 0;
+}
+
+.agenda-horario + .agenda-horario {
+    border-top: 1px solid #ece2d2;
+}
+
+.agenda-horario-fecha {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .2rem .5rem;
+    color: #2b180d;
+    font-weight: 700;
+}
+
+.agenda-horario-fecha time:last-child {
+    padding: .2rem .5rem;
+    border-radius: .45rem;
+    background: #fff0bf;
+    color: #584014;
+    font-size: .85rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.agenda-horario-veterinario {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: #5e4b38;
+}
+
+.agenda-horario .btn {
+    min-height: 36px;
+}
+
+@media (max-width: 767.98px) {
+    .agenda-formulario-campos {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .agenda-formulario-veterinario,
+    .agenda-formulario-campos .btn {
+        grid-column: 1 / -1;
+    }
+
+    .agenda-horario {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: .3rem .75rem;
+    }
+
+    .agenda-horario .btn {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+    }
+}
+
 
 /* ==================================================
    11. PERFILES: LISTAS
