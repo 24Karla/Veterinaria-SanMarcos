@@ -1,490 +1,379 @@
-
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import EstadoApi from '../componentes/moleculas/EstadoApi';
+import {
+    api,
+    mostrarErrorFormulario,
+    pedirDatos,
+    type UsuarioApi,
+    type MascotaApi,
+    type CitaApi,
+    type PedidoApi,
+} from '../servicios/api';
+import type { SesionUsuario } from '../componentes/organismos/PerfilProtegido';
 
-interface PerfilClienteProps {
-    sesion: {
-        nombre: string;
-        correo: string;
-    };
+interface Props {
+    sesion: Pick<SesionUsuario, 'id' | 'nombre' | 'correo'>;
 }
 
-interface Mascota {
-    nombre: string;
-    detalle: string;
-}
-
-interface Cita {
-    mascota: string;
-    fecha: string;
-    hora: string;
-    motivo: string;
-    veterinario: string;
-}
-
-export default function PerfilCliente({
-    sesion,
-}: PerfilClienteProps) {
-    const [perfil, setPerfil] = useState(() => {
-        const perfilInicial = {
-            nombre: sesion.nombre,
-            correo: sesion.correo,
-            ciudad: 'Rancagua, Chile',
-        };
-
-        try {
-            const guardado = localStorage.getItem('perfil-cliente');
-
-            return guardado
-                ? JSON.parse(guardado)
-                : perfilInicial;
-        } catch {
-            return perfilInicial;
-        }
+export default function PerfilCliente({ sesion }: Props) {
+    const [perfil, setPerfil] = useState({
+        nombre: sesion.nombre,
+        telefono: '',
+        ciudad: '',
     });
-
-    const [mascotas, setMascotas] = useState<Mascota[]>(() => {
-        const mascotasIniciales: Mascota[] = [
-            {
-                nombre: 'Luna',
-                detalle: 'Perra · Golden Retriever · 4 años',
-            },
-            {
-                nombre: 'Milo',
-                detalle: 'Gato · Mestizo · 2 años',
-            },
-        ];
-
-        try {
-            const guardadas = localStorage.getItem('mascotas-cliente');
-
-            return guardadas
-                ? JSON.parse(guardadas)
-                : mascotasIniciales;
-        } catch {
-            return mascotasIniciales;
-        }
-    });
-
-    const [mostrarFormulario, setMostrarFormulario] = useState(false);
-
-    const [mascotaEditando, setMascotaEditando] = useState<number | null>(
-        null
-    );
-
-    const [nombreMascota, setNombreMascota] = useState('');
-    const [especieMascota, setEspecieMascota] = useState('Perro');
-    const [edadMascota, setEdadMascota] = useState('');
-
+    const [mascotas, setMascotas] = useState<MascotaApi[]>([]);
+    const [citas, setCitas] = useState<CitaApi[]>([]);
+    const [pedidos, setPedidos] = useState<PedidoApi[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState('');
+    const [ocupado, setOcupado] = useState(false);
+    const [aviso, setAviso] = useState('');
     const [editandoPerfil, setEditandoPerfil] = useState(false);
-    const [datosPerfil, setDatosPerfil] = useState(perfil);
-
-    const [citas] = useState<Cita[]>(() => {
-        const citaInicial = {
-            mascota: 'Luna',
-            fecha: '28 de octubre',
-            hora: '11:00 hrs',
-            motivo: 'Consulta general',
-            veterinario: 'Dr. Martín Rojas',
-        };
-
-        try {
-            const guardadas = localStorage.getItem('citas-cliente');
-
-            return guardadas
-                ? JSON.parse(guardadas)
-                : [citaInicial];
-        } catch {
-            return [citaInicial];
-        }
+    const [mostrarMascota, setMostrarMascota] = useState(false);
+    const [editandoMascota, setEditandoMascota] = useState<number | null>(null);
+    const [datos, setDatos] = useState({
+        nombre: '',
+        especie: 'PERRO',
+        raza: '',
+        edad: '',
+        sexo: 'HEMBRA',
     });
 
     useEffect(() => {
-        localStorage.setItem(
-            'mascotas-cliente',
-            JSON.stringify(mascotas)
-        );
-    }, [mascotas]);
+        if (!sesion.id) return;
+        Promise.allSettled([
+            pedirDatos<UsuarioApi>(`${api.usuarios}/registro/usuario/${sesion.id}`).then(
+                (usuario) => {
+                    setPerfil({
+                        nombre: usuario.nombre,
+                        telefono: usuario.telefono || '',
+                        ciudad: usuario.ciudad || '',
+                    });
+                },
+            ),
+            pedirDatos<MascotaApi[]>(
+                `${api.mascotas}/api/mascotas?clienteId=${sesion.id}`,
+            ).then(setMascotas),
+            pedirDatos<CitaApi[]>(
+                `${api.agenda}/api/citas?correo=${encodeURIComponent(sesion.correo)}`,
+            ).then(setCitas),
+            pedirDatos<PedidoApi[]>(
+                `${api.pedidos}/api/pedidos?correo=${encodeURIComponent(sesion.correo)}`,
+            ).then(setPedidos),
+        ])
+            .then((resultados) => {
+                const fallos = resultados.filter(
+                    (resultado) => resultado.status === 'rejected',
+                );
+                if (fallos.length)
+                    setError(
+                        'No se pudieron cargar todos los datos. Comprueba los servicios de usuarios, mascotas, agenda y pedidos.',
+                    );
+            })
+            .finally(() => setCargando(false));
+    }, [sesion.id, sesion.correo]);
 
-    useEffect(() => {
-        localStorage.setItem(
-            'perfil-cliente',
-            JSON.stringify(perfil)
-        );
-    }, [perfil]);
-
-    function guardarMascota(event: FormEvent<HTMLFormElement>) {
+    async function guardarPerfil(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-
-        const mascota = {
-            nombre: nombreMascota.trim(),
-            detalle: `${especieMascota} · ${edadMascota.trim()} años`,
-        };
-
-        if (mascotaEditando === null) {
-            setMascotas((actuales) => [
-                ...actuales,
-                mascota,
-            ]);
-        } else {
-            setMascotas((actuales) =>
-                actuales.map((mascotaActual, indice) =>
-                    indice === mascotaEditando
-                        ? mascota
-                        : mascotaActual
-                )
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
+        setAviso('');
+        try {
+            await pedirDatos(`${api.usuarios}/registro/usuario/${sesion.id}/perfil`, {
+                method: 'PATCH',
+                body: JSON.stringify(perfil),
+            });
+            localStorage.setItem(
+                'sesion-veterinaria',
+                JSON.stringify({ ...sesion, nombre: perfil.nombre }),
             );
+            window.dispatchEvent(new Event('sesion-actualizada'));
+            setEditandoPerfil(false);
+            setAviso('Perfil actualizado.');
+        } catch (error) {
+            mostrarErrorFormulario(error, setError);
+        } finally {
+            setOcupado(false);
         }
-
-        cerrarFormularioMascota();
     }
 
-    function editarMascota(mascota: Mascota, indice: number) {
-        const [especie, , edad] = mascota.detalle.split(' · ');
-
-        setNombreMascota(mascota.nombre);
-        setEspecieMascota(especie);
-        setEdadMascota(edad.replace(' años', ''));
-        setMascotaEditando(indice);
-        setMostrarFormulario(true);
-    }
-
-    function eliminarMascota(indice: number) {
-        setMascotas((actuales) =>
-            actuales.filter(
-                (_, posicion) => posicion !== indice
-            )
-        );
-    }
-
-    function cerrarFormularioMascota() {
-        setNombreMascota('');
-        setEspecieMascota('Perro');
-        setEdadMascota('');
-        setMascotaEditando(null);
-        setMostrarFormulario(false);
-    }
-
-    function guardarPerfil(event: FormEvent<HTMLFormElement>) {
+    async function guardarMascota(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
+        setAviso('');
+        try {
+            const mascota = await pedirDatos<MascotaApi>(
+                `${api.mascotas}/api/mascotas/${editandoMascota || 'agregar'}`,
+                {
+                    method: editandoMascota ? 'PUT' : 'POST',
+                    body: JSON.stringify({
+                        ...datos,
+                        edad: Number(datos.edad),
+                        clienteId: sesion.id,
+                        activo: true,
+                    }),
+                },
+            );
+            setMascotas((actuales) =>
+                editandoMascota
+                    ? actuales.map((actual) =>
+                          actual.id === editandoMascota ? mascota : actual,
+                      )
+                    : [...actuales, mascota],
+            );
+            setMostrarMascota(false);
+            setEditandoMascota(null);
+            setAviso('Mascota guardada.');
+        } catch (error) {
+            mostrarErrorFormulario(error, setError);
+        } finally {
+            setOcupado(false);
+        }
+    }
 
-        setPerfil(datosPerfil);
-        setEditandoPerfil(false);
+    async function eliminarMascota(id: number) {
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
+        try {
+            await pedirDatos(`${api.mascotas}/api/mascotas/eliminar/${id}`, {
+                method: 'DELETE',
+            });
+            setMascotas((actuales) => actuales.filter((mascota) => mascota.id !== id));
+        } catch (error) {
+            mostrarErrorFormulario(error, setError);
+        } finally {
+            setOcupado(false);
+        }
+    }
+
+    function editarMascota(mascota?: MascotaApi) {
+        setEditandoMascota(mascota?.id || null);
+        setDatos({
+            nombre: mascota?.nombre || '',
+            especie: mascota?.especie || 'PERRO',
+            raza: mascota?.raza || '',
+            edad: mascota ? String(mascota.edad) : '',
+            sexo: mascota?.sexo || 'HEMBRA',
+        });
+        setMostrarMascota(true);
     }
 
     return (
         <main className="container panel-perfil">
             <header className="perfil-encabezado">
-                <span className="perfil-etiqueta">
-                    PORTAL CLIENTE
-                </span>
-
+                <span className="perfil-etiqueta">PORTAL CLIENTE</span>
                 <h1>Hola, {perfil.nombre}</h1>
-
-                <p>
-                    Administra la salud y cuidados de tus mascotas
-                    en un solo lugar.
-                </p>
+                <p>Administra la salud y cuidados de tus mascotas en un solo lugar.</p>
             </header>
-
+            <EstadoApi cargando={cargando} error={error} />
+            {aviso && (
+                <p role="status" className="alert alert-success">
+                    {aviso}
+                </p>
+            )}
             <section className="perfil-grid">
-
-                {/* Mi perfil */}
-
                 <article className="perfil-tarjeta perfil-tarjeta-destacada">
                     <div>
                         <h2>Mi perfil</h2>
-
-                        <p>{perfil.correo}</p>
-
-                        <p>{perfil.ciudad}</p>
+                        <p>{sesion.correo}</p>
+                        {perfil.ciudad && <p>{perfil.ciudad}</p>}
+                        {perfil.telefono && <p>{perfil.telefono}</p>}
                     </div>
-
-                    {editandoPerfil ? (
-                        <form
-                            className="formulario-perfil"
-                            onSubmit={guardarPerfil}
-                        >
-                            <input
-                                className="form-control"
-                                value={datosPerfil.nombre}
-                                onChange={(event) =>
-                                    setDatosPerfil({
-                                        ...datosPerfil,
-                                        nombre: event.target.value,
-                                    })
-                                }
-                                placeholder="Nombre"
-                                required
-                            />
-
-                            <input
-                                className="form-control"
-                                type="email"
-                                value={datosPerfil.correo}
-                                onChange={(event) =>
-                                    setDatosPerfil({
-                                        ...datosPerfil,
-                                        correo: event.target.value,
-                                    })
-                                }
-                                placeholder="Correo"
-                                required
-                            />
-
-                            <input
-                                className="form-control"
-                                value={datosPerfil.ciudad}
-                                onChange={(event) =>
-                                    setDatosPerfil({
-                                        ...datosPerfil,
-                                        ciudad: event.target.value,
-                                    })
-                                }
-                                placeholder="Ciudad"
-                                required
-                            />
-
-                            <div>
-                                <button
-                                    className="btn btn-tienda me-2"
-                                    type="submit"
-                                >
-                                    Guardar
-                                </button>
-
-                                <button
-                                    className="btn btn-volver-tienda"
-                                    type="button"
-                                    onClick={() =>
-                                        setEditandoPerfil(false)
-                                    }
-                                >
-                                    Cancelar
-                                </button>
-                            </div>
-                        </form>
-                    ) : (
+                    {!editandoPerfil && (
                         <button
                             className="btn btn-volver-tienda"
-                            type="button"
-                            onClick={() => {
-                                setDatosPerfil(perfil);
-                                setEditandoPerfil(true);
-                            }}
+                            onClick={() => setEditandoPerfil(true)}
                         >
                             Editar perfil
                         </button>
                     )}
+                    {editandoPerfil && (
+                        <form onSubmit={guardarPerfil} className="formulario-perfil">
+                            <label htmlFor="nombre-perfil">Nombre</label>
+                            <input
+                                id="nombre-perfil"
+                                required
+                                maxLength={50}
+                                className="form-control"
+                                value={perfil.nombre}
+                                onChange={(event) =>
+                                    setPerfil({ ...perfil, nombre: event.target.value })
+                                }
+                            />
+                            <label htmlFor="telefono-perfil">Teléfono</label>
+                            <input
+                                id="telefono-perfil"
+                                maxLength={25}
+                                className="form-control"
+                                value={perfil.telefono}
+                                onChange={(event) =>
+                                    setPerfil({ ...perfil, telefono: event.target.value })
+                                }
+                            />
+                            <label htmlFor="ciudad-perfil">Ciudad</label>
+                            <input
+                                id="ciudad-perfil"
+                                maxLength={100}
+                                className="form-control"
+                                value={perfil.ciudad}
+                                onChange={(event) =>
+                                    setPerfil({ ...perfil, ciudad: event.target.value })
+                                }
+                            />
+                            <button className="btn btn-tienda mt-3" disabled={ocupado}>
+                                Guardar perfil
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-volver-tienda"
+                                onClick={() => setEditandoPerfil(false)}
+                            >
+                                Cancelar
+                            </button>
+                        </form>
+                    )}
                 </article>
-
-                {/* Mis mascotas */}
-
                 <article className="perfil-tarjeta">
                     <div className="perfil-titulo">
                         <h2>Mis mascotas</h2>
                     </div>
-
+                    {!cargando && mascotas.length === 0 && (
+                        <p>No tienes mascotas registradas.</p>
+                    )}
                     <div className="perfil-lista">
-                        {mascotas.map((mascota, indice) => (
-                            <div
-                                key={`${mascota.nombre}-${indice}`}
-                            >
-                                <strong>
-                                    {mascota.nombre}
-                                </strong>
-
+                        {mascotas.map((mascota) => (
+                            <div key={mascota.id}>
+                                <strong>{mascota.nombre}</strong>
                                 <span>
-                                    {mascota.detalle}
+                                    {mascota.especie} · {mascota.raza} · {mascota.edad}{' '}
+                                    años
                                 </span>
-
                                 <div className="acciones-mascota">
                                     <button
                                         className="btn btn-volver-tienda"
-                                        type="button"
-                                        onClick={() =>
-                                            editarMascota(mascota, indice)
-                                        }
+                                        onClick={() => editarMascota(mascota)}
                                     >
                                         Editar
                                     </button>
-
                                     <button
                                         className="btn btn-eliminar"
-                                        type="button"
-                                        onClick={() =>
-                                            eliminarMascota(indice)
-                                        }
+                                        disabled={ocupado}
+                                        onClick={() => eliminarMascota(mascota.id)}
                                     >
                                         Eliminar
                                     </button>
                                 </div>
-
-                                {mascotaEditando === indice && (
-                                    <form
-                                        className="formulario-mascota"
-                                        onSubmit={guardarMascota}
-                                    >
-                                        <input
-                                            className="form-control"
-                                            value={nombreMascota}
-                                            onChange={(event) =>
-                                                setNombreMascota(
-                                                    event.target.value
-                                                )
-                                            }
-                                            placeholder="Nombre de la mascota"
-                                            required
-                                        />
-
-                                        <select
-                                            className="form-select"
-                                            value={especieMascota}
-                                            onChange={(event) =>
-                                                setEspecieMascota(
-                                                    event.target.value
-                                                )
-                                            }
-                                        >
-                                            <option>Perro</option>
-                                            <option>Gato</option>
-                                            <option>Otro</option>
-                                        </select>
-
-                                        <input
-                                            className="form-control"
-                                            value={edadMascota}
-                                            onChange={(event) =>
-                                                setEdadMascota(
-                                                    event.target.value
-                                                )
-                                            }
-                                            placeholder="Edad"
-                                            type="number"
-                                            min="0"
-                                            required
-                                        />
-
-                                        <div>
-                                            <button
-                                                className="btn btn-tienda me-2"
-                                                type="submit"
-                                            >
-                                                Guardar cambios
-                                            </button>
-
-                                            <button
-                                                className="btn btn-volver-tienda"
-                                                type="button"
-                                                onClick={cerrarFormularioMascota}
-                                            >
-                                                Cancelar
-                                            </button>
-                                        </div>
-                                    </form>
-                                )}
                             </div>
                         ))}
                     </div>
-
-                    {mostrarFormulario && mascotaEditando === null ? (
+                    <button className="btn btn-tienda" onClick={() => editarMascota()}>
+                        Agregar mascota
+                    </button>
+                    {mostrarMascota && (
                         <form
-                            className="formulario-mascota"
+                            className="formulario-mascota mt-3"
                             onSubmit={guardarMascota}
                         >
+                            <h3>
+                                {editandoMascota ? 'Editar mascota' : 'Nueva mascota'}
+                            </h3>
+                            <label htmlFor="nombre-mascota">Nombre de la mascota</label>
                             <input
+                                id="nombre-mascota"
                                 className="form-control"
-                                value={nombreMascota}
-                                onChange={(event) =>
-                                    setNombreMascota(event.target.value)
-                                }
-                                placeholder="Nombre de la mascota"
                                 required
-                            />
-
-                            <select
-                                className="form-select"
-                                value={especieMascota}
+                                maxLength={60}
+                                value={datos.nombre}
                                 onChange={(event) =>
-                                    setEspecieMascota(event.target.value)
+                                    setDatos({ ...datos, nombre: event.target.value })
+                                }
+                            />
+                            <label htmlFor="especie-mascota">Especie</label>
+                            <select
+                                id="especie-mascota"
+                                className="form-select"
+                                value={datos.especie}
+                                onChange={(event) =>
+                                    setDatos({ ...datos, especie: event.target.value })
                                 }
                             >
-                                <option>Perro</option>
-                                <option>Gato</option>
-                                <option>Otro</option>
+                                <option value="PERRO">Perro</option>
+                                <option value="GATO">Gato</option>
+                                <option value="OTRO">Otro</option>
                             </select>
-
+                            <label htmlFor="raza-mascota">Raza</label>
                             <input
+                                id="raza-mascota"
                                 className="form-control"
-                                value={edadMascota}
+                                maxLength={60}
+                                value={datos.raza}
                                 onChange={(event) =>
-                                    setEdadMascota(event.target.value)
+                                    setDatos({ ...datos, raza: event.target.value })
                                 }
-                                placeholder="Edad"
+                            />
+                            <label htmlFor="edad-mascota">Edad en años</label>
+                            <input
+                                id="edad-mascota"
+                                className="form-control"
                                 type="number"
                                 min="0"
                                 required
+                                value={datos.edad}
+                                onChange={(event) =>
+                                    setDatos({ ...datos, edad: event.target.value })
+                                }
                             />
-
-                            <div>
-                                <button
-                                    className="btn btn-tienda me-2"
-                                    type="submit"
-                                >
-                                    {mascotaEditando === null
-                                        ? 'Agregar mascota'
-                                        : 'Guardar cambios'}
-                                </button>
-
-                                <button
-                                    className="btn btn-volver-tienda"
-                                    type="button"
-                                    onClick={cerrarFormularioMascota}
-                                >
-                                    Cancelar
-                                </button>
-                            </div>
+                            <label htmlFor="sexo-mascota">Sexo</label>
+                            <select
+                                id="sexo-mascota"
+                                className="form-select"
+                                value={datos.sexo}
+                                onChange={(event) =>
+                                    setDatos({ ...datos, sexo: event.target.value })
+                                }
+                            >
+                                <option value="HEMBRA">Hembra</option>
+                                <option value="MACHO">Macho</option>
+                            </select>
+                            <button
+                                className="btn btn-tienda mt-3 me-2"
+                                disabled={ocupado}
+                            >
+                                Guardar mascota
+                            </button>
+                            <button
+                                className="btn btn-volver-tienda mt-3"
+                                type="button"
+                                onClick={() => setMostrarMascota(false)}
+                            >
+                                Cancelar
+                            </button>
                         </form>
-                    ) : (
-                        <button
-                            className="btn btn-tienda"
-                            type="button"
-                            onClick={() => {
-                                setMascotaEditando(null);
-                                setMostrarFormulario(true);
-                            }}
-                        >
-                            Agregar mascota
-                        </button>
                     )}
                 </article>
-
-                {/* Próximas citas */}
-
                 <article className="perfil-tarjeta">
                     <div className="perfil-titulo">
                         <h2>Próximas citas</h2>
                     </div>
-
-                    {citas.slice(0, 2).map((cita, indice) => (
-                        <div
-                            className="perfil-cita"
-                            key={`${cita.mascota}-${cita.fecha}-${indice}`}
-                        >
-                            <strong>
-                                {cita.motivo} · {cita.mascota}
-                            </strong>
-
-                            <span>
-                                {cita.fecha} · {cita.hora}
-                            </span>
-
-                            <span>
-                                {cita.veterinario}
-                            </span>
-                        </div>
-                    ))}
-
+                    {citas
+                        .filter((cita) => cita.estado === 'RESERVADA')
+                        .slice(0, 3)
+                        .map((cita) => (
+                            <div className="perfil-cita" key={cita.id}>
+                                <strong>
+                                    {cita.motivo} · {cita.mascota}
+                                </strong>
+                                <span>
+                                    {cita.fecha} · {cita.hora.slice(0, 5)}
+                                </span>
+                                <span>{cita.veterinario}</span>
+                            </div>
+                        ))}
                     <div className="acciones-cita">
                         <Link
                             className="btn btn-tienda"
@@ -492,7 +381,6 @@ export default function PerfilCliente({
                         >
                             Reservar cita
                         </Link>
-
                         <Link
                             className="btn btn-volver-tienda"
                             to="/perfil/cliente/citas"
@@ -501,36 +389,14 @@ export default function PerfilCliente({
                         </Link>
                     </div>
                 </article>
-
-                {/* Historial veterinario */}
-
                 <article className="perfil-tarjeta">
                     <div className="perfil-titulo">
                         <h2>Historial veterinario</h2>
                     </div>
-
-                    <div className="perfil-lista">
-                        <div>
-                            <strong>
-                                Vacunación anual
-                            </strong>
-
-                            <span>
-                                Luna · 12 de septiembre de 2026
-                            </span>
-                        </div>
-
-                        <div>
-                            <strong>
-                                Control general
-                            </strong>
-
-                            <span>
-                                Milo · 4 de agosto de 2026
-                            </span>
-                        </div>
-                    </div>
-
+                    <p>
+                        Consulta diagnósticos, recetas e indicaciones registrados por el
+                        veterinario.
+                    </p>
                     <Link
                         className="btn btn-volver-tienda"
                         to="/perfil/cliente/historial"
@@ -538,44 +404,26 @@ export default function PerfilCliente({
                         Ver historial completo
                     </Link>
                 </article>
-
-                {/* Mis compras */}
-
                 <article className="perfil-tarjeta">
                     <div className="perfil-titulo">
                         <h2>Mis compras</h2>
                     </div>
-
                     <div className="perfil-lista">
-                        <div>
-                            <strong>
-                                Pedido #1024
-                            </strong>
-
-                            <span>
-                                20 de octubre de 2026 · $11.000 · Entregado
-                            </span>
-                        </div>
-
-                        <div>
-                            <strong>
-                                Pedido #1008
-                            </strong>
-
-                            <span>
-                                5 de octubre de 2026 · $9.500 · Entregado
-                            </span>
-                        </div>
+                        {pedidos.slice(0, 2).map((pedido) => (
+                            <div key={pedido.id}>
+                                <strong>Pedido #{pedido.id}</strong>
+                                <span>
+                                    {pedido.fecha.slice(0, 10)} · $
+                                    {pedido.total.toLocaleString('es-CL')} ·{' '}
+                                    {pedido.estado}
+                                </span>
+                            </div>
+                        ))}
                     </div>
-
-                    <Link
-                        className="btn btn-volver-tienda"
-                        to="/perfil/cliente/compras"
-                    >
+                    <Link className="btn btn-volver-tienda" to="/perfil/cliente/compras">
                         Ver historial de compras
                     </Link>
                 </article>
-
             </section>
         </main>
     );

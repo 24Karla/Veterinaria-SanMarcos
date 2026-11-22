@@ -1,103 +1,84 @@
-
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import EstadoApi from '../componentes/moleculas/EstadoApi';
+import {
+    api,
+    pedirDatos,
+    mensajeError,
+    obtenerSesion,
+    type FichaApi,
+} from '../servicios/api';
 
 export default function HistorialCliente() {
+    const id = obtenerSesion()?.id;
+    const [fichas, setFichas] = useState<FichaApi[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (!id) return;
+        pedirDatos<FichaApi[]>(`${api.ficha}/api/fichas/dueno/${id}`)
+            .then(setFichas)
+            .catch((error) => setError(mensajeError(error)))
+            .finally(() => setCargando(false));
+    }, [id]);
+
     return (
         <main className="container panel-perfil">
-
-            <Link
-                to="/perfil/cliente"
-                className="btn btn-volver-tienda mb-4"
-            >
+            <Link to="/perfil/cliente" className="btn btn-volver-tienda mb-4">
                 ← Volver a mi perfil
             </Link>
-
             <header className="perfil-encabezado">
-                <span className="perfil-etiqueta">
-                    PORTAL CLIENTE
-                </span>
+                <span className="perfil-etiqueta">PORTAL CLIENTE</span>
 
                 <h1>Historial veterinario</h1>
 
-                <p>
-                    Consulta las atenciones, vacunas y tratamientos
-                    de tus mascotas.
-                </p>
+                <p>Consulta las atenciones, vacunas y tratamientos de tus mascotas.</p>
             </header>
-
+            <EstadoApi cargando={cargando} error={error} />
+            {!cargando && !error && fichas.length === 0 && (
+                <p>Aún no hay fichas clínicas registradas para tus mascotas.</p>
+            )}
             <section className="historial-mascotas">
-
-                <article className="perfil-tarjeta">
-                    <div className="perfil-titulo">
-                        <h2>Luna · Golden Retriever</h2>
-                    </div>
-
-                    <div className="perfil-lista">
-                        <div>
-                            <strong>
-                                12 de septiembre de 2026 · Vacunación anual
-                            </strong>
-
-                            <span>
-                                Vacuna óctuple y antirrábica.
-                                Próximo control: septiembre de 2027.
-                            </span>
+                {fichas.map((ficha) => (
+                    <article className="perfil-tarjeta" key={ficha.id}>
+                        <div className="perfil-titulo">
+                            <h2>
+                                {ficha.nombre} · {ficha.raza || ficha.especie}
+                            </h2>
                         </div>
-
-                        <div>
-                            <strong>
-                                15 de junio de 2026 · Consulta general
-                            </strong>
-
-                            <span>
-                                Control preventivo, peso 24,5 kg
-                                y condición general saludable.
-                            </span>
+                        {!ficha.historialConsultas?.length && (
+                            <p>Sin consultas registradas.</p>
+                        )}
+                        <div className="perfil-lista">
+                            {ficha.historialConsultas?.map((consulta) => (
+                                <div key={consulta.id}>
+                                    <strong>
+                                        {new Date(
+                                            consulta.fechaConsulta,
+                                        ).toLocaleDateString('es-CL')}{' '}
+                                        · {consulta.tipoServicio}
+                                    </strong>
+                                    <span>Veterinario: {consulta.nombreVeterinario}</span>
+                                    <p>Motivo: {consulta.motivoConsulta}</p>
+                                    <p>Diagnóstico: {consulta.diagnostico}</p>
+                                    <p>
+                                        Medicamentos:{' '}
+                                        {consulta.medicamentosRecetados || 'Sin receta'}
+                                    </p>
+                                    <p>
+                                        Indicaciones:{' '}
+                                        {consulta.indicaciones ||
+                                            'Sin indicaciones adicionales'}
+                                    </p>
+                                    {consulta.proximoControl && (
+                                        <p>Próximo control: {consulta.proximoControl}</p>
+                                    )}
+                                </div>
+                            ))}
                         </div>
-
-                        <div>
-                            <strong>
-                                4 de marzo de 2026 · Desparasitación
-                            </strong>
-
-                            <span>
-                                Tratamiento oral indicado por la
-                                Dra. Fernanda Soto.
-                            </span>
-                        </div>
-                    </div>
-                </article>
-
-                <article className="perfil-tarjeta">
-                    <div className="perfil-titulo">
-                        <h2>Milo · Gato mestizo</h2>
-                    </div>
-
-                    <div className="perfil-lista">
-                        <div>
-                            <strong>
-                                4 de agosto de 2026 · Control general
-                            </strong>
-
-                            <span>
-                                Examen clínico sin observaciones.
-                                Próximo control en seis meses.
-                            </span>
-                        </div>
-
-                        <div>
-                            <strong>
-                                22 de abril de 2026 · Vacunación triple felina
-                            </strong>
-
-                            <span>
-                                Vacuna aplicada correctamente,
-                                sin reacciones adversas.
-                            </span>
-                        </div>
-                    </div>
-                </article>
-
+                    </article>
+                ))}
             </section>
         </main>
     );

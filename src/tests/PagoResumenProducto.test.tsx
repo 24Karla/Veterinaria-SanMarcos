@@ -5,6 +5,7 @@ import { expect, test, vi } from 'vitest';
 import Pago from '../paginas/Pago';
 
 test('muestra el producto en el resumen de pago', () => {
+    localStorage.setItem('sesion-veterinaria', JSON.stringify({ id: 1, nombre: 'Sofía', correo: 'sofia@example.com', rol: 'cliente' }));
   render(
     <Pago
       carrito={[{

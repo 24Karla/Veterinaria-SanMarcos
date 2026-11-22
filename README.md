@@ -1,28 +1,21 @@
 # Veterinaria San Marcos
 
-Proyecto frontend desarrollado con React y Vite para una veterinaria. Permite revisar productos, agregarlos al carrito, reservar citas e iniciar sesión según el tipo de usuario.
+Veterinaria San Marcos es una aplicación web que conecta a clientes, veterinarios y administradores. Desde el sitio se pueden comprar productos para mascotas, reservar citas y enviar consultas a la clínica.
 
 ## Tecnologías utilizadas
 
-- React
-- TypeScript
-- Vite
-- React Router DOM
-- Bootstrap
-- Vitest
-- React Testing Library
+- **React y TypeScript** para la interfaz y la lógica del frontend.
+- **Vite** para el desarrollo y la compilación.
+- **React Router** para la navegación y las rutas por perfil.
+- **Bootstrap y CSS** para los estilos y la adaptación a distintos tamaños de pantalla.
+- **Vitest y React Testing Library** para las pruebas de componentes.
+
+El frontend se comunica con los microservicios mediante el API Gateway.
 
 ## Funcionalidades
 
-- Visualización y búsqueda de productos.
-- Filtro de productos por categoría.
-- Detalle de producto.
-- Carrito de compras.
-- Página de pago y confirmación de compra.
-- Historial de compras del cliente.
-- Reserva de citas veterinarias.
-- Inicio de sesión por tipo de usuario.
-- Perfil de cliente, veterinario y administrador.
-- Gestión básica de mascotas.
-- Visualización de citas, recetas, ventas e inventario.
-- Pruebas unitarias separadas por funcionalidad.
+- **Cliente:** puede crear una cuenta, gestionar sus mascotas, reservar un horario disponible y consultar sus citas y pedidos.
+- **Tienda:** permite explorar el catálogo, agregar productos al carrito y confirmar un pedido.
+- **Contacto:** permite enviar consultas a la clínica mediante un formulario.
+- **Veterinario:** puede revisar su agenda, consultar fichas clínicas y registrar atenciones.
+- **Administrador:** puede habilitar horarios, gestionar productos y revisar pedidos y mensajes de contacto.

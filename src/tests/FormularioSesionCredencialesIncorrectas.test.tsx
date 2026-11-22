@@ -1,44 +1,33 @@
-
-// @vitest-environment jsdom
-
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { expect, test, vi } from 'vitest';
 import FormularioSesion from '../componentes/organismos/FormularioSesion';
 
-test('muestra error con credenciales incorrectas', () => {
+test('no inicia sesión cuando el servidor rechaza las credenciales', async () => {
     const alerta = vi.spyOn(window, 'alert').mockImplementation(() => {});
-
-    render(
-        <FormularioSesion onLogin={vi.fn()} />
+    vi.stubGlobal(
+        'fetch',
+        vi
+            .fn()
+            .mockResolvedValue(
+                new Response(
+                    JSON.stringify({ detail: 'Correo o contraseña incorrectos' }),
+                    { status: 401 },
+                ),
+            ),
     );
-
-    const correo = document.querySelector<HTMLInputElement>(
-        'input[name="correo"]'
-    )!;
-
-    const clave = document.querySelector<HTMLInputElement>(
-        'input[name="contraseña"]'
-    )!;
-
-    fireEvent.change(correo, {
-        target: {
-            value: 'persona@gmail.com',
-        },
+    const iniciarSesion = vi.fn();
+    render(<FormularioSesion onLogin={iniciarSesion} />);
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+        target: { value: 'persona@example.com' },
     });
-
-    fireEvent.change(clave, {
-        target: {
-            value: '1234',
-        },
+    fireEvent.change(screen.getByLabelText('Contraseña'), {
+        target: { value: 'incorrecta' },
     });
-
-    fireEvent.click(
-        screen.getByRole('button', { name: 'Ingresar' })
+    fireEvent.click(screen.getByRole('button', { name: 'Ingresar' }));
+    await waitFor(() =>
+        expect(alerta).toHaveBeenCalledWith(
+            expect.stringContaining('Correo o contraseña incorrectos'),
+        ),
     );
-
-    expect(alerta).toHaveBeenCalledWith(
-        'El correo o la contraseña no corresponden a una cuenta de prueba.'
-    );
-
-    alerta.mockRestore();
+    expect(iniciarSesion).not.toHaveBeenCalled();
 });

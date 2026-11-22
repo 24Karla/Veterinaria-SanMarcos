@@ -1,215 +1,165 @@
-
 import { useEffect, useState, type FormEvent } from 'react';
 import PaginaGestion from './PaginaGestion';
+import EstadoApi from '../componentes/moleculas/EstadoApi';
+import type { Producto } from '../componentes/organismos/CardTienda';
+import { api, mostrarErrorFormulario, pedirDatos, mensajeError } from '../servicios/api';
 
-const productosInventario = [
-    {
-        titulo: 'Amoxibay 250mg',
-        descripcion: 'Antibióticos · Stock: 45 unidades',
-        imagen: '/img/Amoxibay.jpg',
-    },
-    {
-        titulo: 'Enrox 50mg',
-        descripcion: 'Antibióticos · Stock: 30 unidades',
-        imagen: '/img/Enrox.jpg',
-    },
-    {
-        titulo: 'Metrobay 250mg',
-        descripcion: 'Antibióticos · Stock: 28 unidades',
-        imagen: '/img/Metrobay.jpg',
-    },
-    {
-        titulo: 'Nexgard',
-        descripcion: 'Antiparasitarios · Stock: 60 unidades',
-        imagen: '/img/Nexgard.jpg',
-    },
-    {
-        titulo: 'Bravecto',
-        descripcion: 'Antiparasitarios · Stock: 40 unidades',
-        imagen: '/img/Bravecto.jpg',
-    },
-    {
-        titulo: 'Revolution Plus',
-        descripcion: 'Antiparasitarios · Stock: 35 unidades',
-        imagen: '/img/Revolution.jpg',
-    },
-    {
-        titulo: 'Drontal Plus',
-        descripcion: 'Antiparasitarios · Stock: 80 unidades',
-        imagen: '/img/Drontal.jpg',
-    },
-    {
-        titulo: 'Milbemax Gato',
-        descripcion: 'Antiparasitarios · Stock: 50 unidades',
-        imagen: '/img/Milbemax.jpg',
-    },
-    {
-        titulo: 'Meloxicam 1mg',
-        descripcion: 'Antiinflamatorios · Stock: 55 unidades',
-        imagen: '/img/Meloxicam.jpg',
-    },
-    {
-        titulo: 'Carprofen 50mg',
-        descripcion: 'Antiinflamatorios · Stock: 30 unidades',
-        imagen: '/img/Carprofen.jpg',
-    },
-    {
-        titulo: 'Clorhexidina shampoo',
-        descripcion: 'Dermatología · Stock: 25 unidades',
-        imagen: '/img/Clorhexidina.jpg',
-    },
-    {
-        titulo: 'Malaseb shampoo',
-        descripcion: 'Dermatología · Stock: 20 unidades',
-        imagen: '/img/Malaseb.jpg',
-    },
-    {
-        titulo: 'Apoquel 16mg',
-        descripcion: 'Dermatología · Stock: 18 unidades',
-        imagen: '/img/Apoquel.jpg',
-    },
-    {
-        titulo: 'Probifor',
-        descripcion: 'Digestivo · Stock: 40 unidades',
-        imagen: '/img/Probifor.png',
-    },
-    {
-        titulo: 'Omeprazol 10mg vet',
-        descripcion: 'Digestivo · Stock: 35 unidades',
-        imagen: '/img/Omeprazol.jpg',
-    },
-    {
-        titulo: 'Vetmedin 2.5mg',
-        descripcion: 'Cardíaco · Stock: 15 unidades',
-        imagen: '/img/Vetmedin.jpg',
-    },
-    {
-        titulo: 'Tramadol 50mg vet',
-        descripcion: 'Analgésicos · Stock: 22 unidades',
-        imagen: '/img/Tramadol.jpg',
-    },
-    {
-        titulo: 'Nobivac DHPPi',
-        descripcion: 'Vacunas · Stock: 48 unidades',
-        imagen: '/img/Nobivac.jpg',
-    },
-    {
-        titulo: 'Nobivac Rabies',
-        descripcion: 'Vacunas · Stock: 60 unidades',
-        imagen: '/img/NobivacR.jpg',
-    },
-    {
-        titulo: 'Felocell CVR',
-        descripcion: 'Vacunas · Stock: 36 unidades',
-        imagen: '/img/Felocell.jpg',
-    },
-    {
-        titulo: 'Omega vet 3,6',
-        descripcion: 'Suplementos · Stock: 30 unidades',
-        imagen: '/img/Omega.jpg',
-    },
-    {
-        titulo: 'Condrovet forte',
-        descripcion: 'Suplementos · Stock: 25 unidades',
-        imagen: '/img/Condrovet.jpg',
-    },
-];
+const vacio = {
+    codigo: '',
+    nombre: '',
+    categoria: '',
+    precio: '',
+    stock: '',
+    imagen: '',
+    principioActivo: '',
+    presentacion: '',
+    especie: '',
+};
 
 export default function ProductosInventario() {
-    const [productos, setProductos] = useState(() => {
-        try {
-            const guardados = localStorage.getItem('productos-inventario');
-            return guardados ? JSON.parse(guardados) : productosInventario;
-        } catch {
-            return productosInventario;
-        }
-    });
-    const [mostrarFormulario, setMostrarFormulario] = useState(false);
-    const [productoEditando, setProductoEditando] = useState<number | null>(null);
-    const [datos, setDatos] = useState({
-        nombre: '',
-        categoria: '',
-        precio: '',
-        stock: '',
-        imagen: '',
-    });
+    const [productos, setProductos] = useState<Producto[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState('');
+    const [ocupado, setOcupado] = useState(false);
+    const [mostrar, setMostrar] = useState(false);
+    const [editando, setEditando] = useState<string | null>(null);
+    const [datos, setDatos] = useState(vacio);
 
     useEffect(() => {
-        localStorage.setItem('productos-inventario', JSON.stringify(productos));
-    }, [productos]);
+        pedirDatos<Producto[]>(`${api.productos}/api/productos`)
+            .then(setProductos)
+            .catch((error) => setError(mensajeError(error)))
+            .finally(() => setCargando(false));
+    }, []);
 
-    function cambiar(campo: keyof typeof datos, valor: string) {
-        setDatos((actual) => ({ ...actual, [campo]: valor }));
+    function editar(producto?: Producto) {
+        setEditando(producto?.codigo || null);
+        setDatos(
+            producto
+                ? {
+                      ...producto,
+                      precio: String(producto.precio),
+                      stock: String(producto.stock),
+                  }
+                : vacio,
+        );
+        setMostrar(true);
     }
 
-    function guardarProducto(event: FormEvent<HTMLFormElement>) {
+    async function guardar(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-
-        const faltaPrecio = productoEditando === null && !datos.precio;
-
-        if (!datos.nombre.trim() || !datos.categoria.trim() || faltaPrecio || !datos.stock) {
-            alert('Completa nombre, categoría, precio y stock.');
+        if (ocupado) return;
+        if (
+            !datos.nombre.trim() ||
+            !datos.categoria.trim() ||
+            !datos.precio.trim() ||
+            !Number.isFinite(Number(datos.precio)) ||
+            Number(datos.precio) <= 0 ||
+            !datos.stock.trim() ||
+            !Number.isInteger(Number(datos.stock)) ||
+            Number(datos.stock) < 0 ||
+            !datos.codigo.trim()
+        ) {
+            alert(
+                'Completa código, nombre, categoría, un precio mayor a cero y un stock válido.',
+            );
             return;
         }
-
-        if (datos.precio && Number(datos.precio) <= 0) {
-            alert('El precio debe ser mayor a cero.');
-            return;
+        setOcupado(true);
+        setError('');
+        try {
+            const producto = await pedirDatos<Producto>(
+                `${api.productos}/api/productos${editando ? '/' + encodeURIComponent(editando) : ''}`,
+                {
+                    method: editando ? 'PUT' : 'POST',
+                    body: JSON.stringify({
+                        ...datos,
+                        codigo: datos.codigo.toUpperCase(),
+                        precio: Number(datos.precio),
+                        stock: Number(datos.stock),
+                        imagen: datos.imagen || '/img/Amoxibay.jpg',
+                    }),
+                },
+            );
+            setProductos((actuales) =>
+                editando
+                    ? actuales.map((actual) =>
+                          actual.codigo === editando ? producto : actual,
+                      )
+                    : [...actuales, producto],
+            );
+            setMostrar(false);
+        } catch (error) {
+            mostrarErrorFormulario(error, setError);
+        } finally {
+            setOcupado(false);
         }
-
-        if (Number(datos.stock) < 0) {
-            alert('El stock no puede ser negativo.');
-            return;
-        }
-
-        const producto = {
-            titulo: datos.nombre.trim(),
-            descripcion: `${datos.categoria.trim()} · Stock: ${datos.stock} unidades${datos.precio ? ` · Precio: $${datos.precio}` : ''}`,
-            imagen: datos.imagen.trim() || '/img/Amoxibay.jpg',
-        };
-
-        if (productoEditando === null) {
-            setProductos((actuales) => [...actuales, producto]);
-        } else {
-            setProductos((actuales) => actuales.map((actual, indice) => indice === productoEditando ? producto : actual));
-        }
-
-        cerrarFormulario();
     }
 
-    function editarProducto(producto: { titulo: string; descripcion: string; imagen?: string }, indice: number) {
-        const categoria = producto.descripcion.split(' · Stock:')[0];
-        const stock = producto.descripcion.match(/Stock: (\d+) unidades/)?.[1] || '';
-        const precio = producto.descripcion.match(/Precio: \$(\d+)/)?.[1] || '';
-
-        setDatos({ nombre: producto.titulo, categoria, precio, stock, imagen: producto.imagen || '' });
-        setProductoEditando(indice);
-        setMostrarFormulario(false);
-    }
-
-    function eliminarProducto(indice: number) {
-        setProductos((actuales) => actuales.filter((_, posicion) => posicion !== indice));
-    }
-
-    function cerrarFormulario() {
-        setDatos({ nombre: '', categoria: '', precio: '', stock: '', imagen: '' });
-        setProductoEditando(null);
-        setMostrarFormulario(false);
+    async function eliminar(codigo: string) {
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
+        try {
+            await pedirDatos(
+                `${api.productos}/api/productos/${encodeURIComponent(codigo)}`,
+                { method: 'DELETE' },
+            );
+            setProductos((actuales) =>
+                actuales.filter((actual) => actual.codigo !== codigo),
+            );
+        } catch (error) {
+            mostrarErrorFormulario(error, setError);
+        } finally {
+            setOcupado(false);
+        }
     }
 
     function formularioProducto() {
         return (
-            <form className="formulario-mascota" onSubmit={guardarProducto}>
-                <h2>{productoEditando === null ? 'Nuevo producto' : 'Editar producto'}</h2>
-                <input className="form-control" aria-label="Nombre del producto" value={datos.nombre} onChange={(event) => cambiar('nombre', event.target.value)} placeholder="Nombre" />
-                <input className="form-control" aria-label="Categoría del producto" value={datos.categoria} onChange={(event) => cambiar('categoria', event.target.value)} placeholder="Categoría" />
-                <input className="form-control" aria-label="Precio del producto" type="number" min="0" value={datos.precio} onChange={(event) => cambiar('precio', event.target.value)} placeholder="Precio" />
-                <input className="form-control" aria-label="Stock del producto" type="number" min="0" value={datos.stock} onChange={(event) => cambiar('stock', event.target.value)} placeholder="Stock" />
-                <input className="form-control" aria-label="Imagen del producto" value={datos.imagen} onChange={(event) => cambiar('imagen', event.target.value)} placeholder="Ruta de imagen (opcional)" />
-                <div>
-                    <button className="btn btn-tienda me-2" type="submit">{productoEditando === null ? 'Guardar producto' : 'Guardar cambios'}</button>
-                    <button className="btn btn-volver-tienda" type="button" onClick={cerrarFormulario}>Cancelar</button>
-                </div>
+            <form noValidate className="formulario-mascota mb-4" onSubmit={guardar}>
+                <h2>{editando ? 'Editar producto' : 'Nuevo producto'}</h2>
+                {(Object.keys(vacio) as (keyof typeof vacio)[]).map((campo) => (
+                    <div className="mb-2" key={campo}>
+                        <label htmlFor={`producto-${campo}`}>
+                            {
+                                {
+                                    codigo: 'Código',
+                                    nombre: 'Nombre',
+                                    categoria: 'Categoría',
+                                    precio: 'Precio',
+                                    stock: 'Stock',
+                                    imagen: 'Ruta de imagen',
+                                    principioActivo: 'Principio activo',
+                                    presentacion: 'Presentación',
+                                    especie: 'Especie',
+                                }[campo]
+                            }
+                        </label>
+                        <input
+                            id={`producto-${campo}`}
+                            className="form-control"
+                            required={!['imagen', 'principioActivo'].includes(campo)}
+                            type={['precio', 'stock'].includes(campo) ? 'number' : 'text'}
+                            min={campo === 'precio' ? 1 : 0}
+                            readOnly={campo === 'codigo' && !!editando}
+                            value={datos[campo]}
+                            onChange={(event) =>
+                                setDatos({ ...datos, [campo]: event.target.value })
+                            }
+                        />
+                    </div>
+                ))}
+                <button className="btn btn-tienda me-2" disabled={ocupado}>
+                    Guardar producto
+                </button>
+                <button
+                    type="button"
+                    className="btn btn-volver-tienda"
+                    onClick={() => setMostrar(false)}
+                >
+                    Cancelar
+                </button>
             </form>
         );
     }
@@ -220,17 +170,33 @@ export default function ProductosInventario() {
             titulo="Productos e inventario"
             descripcion="Revisa el estado de los productos de la veterinaria."
             volverA="/perfil/administrador"
-            registros={productos}
+            registros={productos.map((producto) => ({
+                titulo: producto.nombre,
+                descripcion: `${producto.categoria} · Stock: ${producto.stock} unidades · Precio: $${producto.precio.toLocaleString('es-CL')}`,
+                imagen: producto.imagen,
+            }))}
             accion={
-                mostrarFormulario ? (
-                    <div className="mb-4">{formularioProducto()}</div>
-                ) : (
-                    <button className="btn btn-tienda mb-4" type="button" onClick={() => { setProductoEditando(null); setMostrarFormulario(true); }}>Agregar producto</button>
-                )
+                <>
+                    <EstadoApi cargando={cargando} error={error} />
+                    {mostrar && !editando ? (
+                        formularioProducto()
+                    ) : (
+                        <button className="btn btn-tienda mb-4" onClick={() => editar()}>
+                            Agregar producto
+                        </button>
+                    )}
+                    {!cargando && !error && productos.length === 0 && (
+                        <p>No hay productos registrados.</p>
+                    )}
+                </>
             }
-            onEditar={editarProducto}
-            onEliminar={eliminarProducto}
-            registroEditando={productoEditando}
+            onEditar={(_, indice) => editar(productos[indice])}
+            onEliminar={(indice) => eliminar(productos[indice].codigo)}
+            registroEditando={
+                mostrar && editando
+                    ? productos.findIndex((producto) => producto.codigo === editando)
+                    : null
+            }
             formularioEdicion={formularioProducto}
         />
     );

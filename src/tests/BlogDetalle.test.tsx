@@ -1,6 +1,13 @@
-import { expect, test } from 'vitest';
-import { BLOG_MOCK } from '../componentes/organismos/ListaBlog';
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, expect, test, vi } from 'vitest';
+import ListaBlog from '../componentes/organismos/ListaBlog';
 
-test('el artículo de perros tiene contenido propio', () => {
-  expect(BLOG_MOCK[0].contenido).toContain('agua fresca disponible');
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+
+test('carga las publicaciones guardadas en el backend', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify([
+        { id: 1, titulo: 'Cuidados de verano', resumen: 'Agua fresca', autor: 'Veterinaria', fecha: '2030-01-15', categoria: 'Cuidados', imagen: '/img/perro.jpg', contenido: 'Agua fresca disponible' },
+    ]), { status: 200 })));
+    render(<ListaBlog />);
+    expect(await screen.findByText('Cuidados de verano')).toBeTruthy();
 });

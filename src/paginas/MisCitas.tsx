@@ -1,193 +1,238 @@
-
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-interface Cita {
-    mascota: string;
-    fecha: string;
-    hora: string;
-    motivo: string;
-    veterinario: string;
-}
-
-function obtenerFecha(fecha: string) {
-    const [, mes, dia] = fecha.split('-');
-    const meses = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
-
-    return {
-        dia: dia || '28',
-        mes: meses[Number(mes) - 1] || 'OCT',
-    };
-}
+import EstadoApi from '../componentes/moleculas/EstadoApi';
+import {
+    api,
+    mostrarErrorFormulario,
+    pedirDatos,
+    mensajeError,
+    obtenerSesion,
+    type CitaApi,
+    type HorarioApi,
+} from '../servicios/api';
 
 export default function MisCitas() {
-    const [citaAbierta, setCitaAbierta] = useState('');
-    const [citas] = useState<Cita[]>(() => {
-        const citaInicial = {
-            mascota: 'Luna',
-            fecha: '2026-10-28',
-            hora: '11:00 hrs',
-            motivo: 'Consulta general',
-            veterinario: 'Dr. Martín Rojas',
-        };
+    const correo = obtenerSesion()?.correo;
+    const [citaAbierta, setCitaAbierta] = useState<number | null>(null);
+    const [citas, setCitas] = useState<CitaApi[]>([]);
+    const [horarios, setHorarios] = useState<HorarioApi[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState('');
+    const [ocupado, setOcupado] = useState(false);
+    const [editando, setEditando] = useState<number | null>(null);
+    const [horarioId, setHorarioId] = useState('');
 
+    useEffect(() => {
+        if (!correo) return;
+        pedirDatos<CitaApi[]>(
+            `${api.agenda}/api/citas?correo=${encodeURIComponent(correo)}`,
+        )
+            .then(setCitas)
+            .catch((error) => setError(mensajeError(error)))
+            .finally(() => setCargando(false));
+    }, [correo]);
+
+    async function cancelar(cita: CitaApi) {
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
         try {
-            const guardadas = localStorage.getItem('citas-cliente');
-            return guardadas ? JSON.parse(guardadas) : [citaInicial];
-        } catch {
-            return [citaInicial];
+            await pedirDatos(`${api.agenda}/api/citas/${cita.id}`, { method: 'DELETE' });
+            setCitas((actuales) =>
+                actuales.map((actual) =>
+                    actual.id === cita.id ? { ...actual, estado: 'CANCELADA' } : actual,
+                ),
+            );
+        } catch (error) {
+            mostrarErrorFormulario(error, setError);
+        } finally {
+            setOcupado(false);
         }
-    });
+    }
+
+    async function abrirReprogramacion(id: number) {
+        setError('');
+        try {
+            setHorarios(await pedirDatos<HorarioApi[]>(`${api.agenda}/api/horarios`));
+            setEditando(id);
+            setHorarioId('');
+        } catch (error) {
+            mostrarErrorFormulario(error, setError);
+        }
+    }
+
+    async function reprogramar(cita: CitaApi) {
+        if (!horarioId || ocupado) return;
+        setOcupado(true);
+        setError('');
+        try {
+            const actualizada = await pedirDatos<CitaApi>(
+                `${api.agenda}/api/citas/${cita.id}`,
+                {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        horarioId: Number(horarioId),
+                        dueno: cita.dueno,
+                        correo: cita.correo,
+                        mascota: cita.mascota,
+                        especie: cita.especie,
+                        servicio: cita.servicio,
+                        motivo: cita.motivo,
+                    }),
+                },
+            );
+            setCitas((actuales) =>
+                actuales.map((actual) => (actual.id === cita.id ? actualizada : actual)),
+            );
+            setEditando(null);
+        } catch (error) {
+            mostrarErrorFormulario(error, setError);
+        } finally {
+            setOcupado(false);
+        }
+    }
 
     return (
         <main className="container panel-perfil">
-
-            <Link
-                to="/perfil/cliente"
-                className="btn btn-volver-tienda mb-4"
-            >
+            <Link to="/perfil/cliente" className="btn btn-volver-tienda mb-4">
                 ← Volver a mi perfil
             </Link>
-
             <header className="perfil-encabezado">
-                <span className="perfil-etiqueta">
-                    PORTAL CLIENTE
-                </span>
+                <span className="perfil-etiqueta">PORTAL CLIENTE</span>
 
                 <h1>Mis citas veterinarias</h1>
 
-                <p>
-                    Revisa tus próximas atenciones y las citas realizadas.
-                </p>
+                <p>Revisa tus próximas atenciones y las citas realizadas.</p>
             </header>
-
+            <EstadoApi cargando={cargando} error={error} />
+            <Link to="/tienda?pagina=cita&origen=perfil" className="btn btn-tienda mb-3">
+                Reservar cita
+            </Link>
+            {!cargando && !error && citas.length === 0 && (
+                <p>No tienes citas registradas.</p>
+            )}
             <section className="lista-registros">
-
-                {citas.map((cita, indice) => {
-                    const fecha = obtenerFecha(cita.fecha);
-                    const identificador = `proxima-${indice}`;
-
-                    return (
-                        <article className="registro-cita registro-cita-proxima" key={identificador}>
-                            <div className="registro-fecha">
-                                <strong>{fecha.dia}</strong>
-                                <span>{fecha.mes}</span>
-                            </div>
-
-                            <div>
-                                <span className="registro-estado">Próxima cita</span>
-                                <h2>{cita.motivo} · {cita.mascota}</h2>
-                                <p>{cita.hora} · {cita.veterinario}</p>
-                            </div>
-
-                            <button
-                                type="button"
-                                className="btn btn-tienda"
-                                onClick={() => setCitaAbierta(citaAbierta === identificador ? '' : identificador)}
+                {citas.map((cita) => (
+                    <article
+                        className={`registro-cita ${cita.estado === 'RESERVADA' ? 'registro-cita-proxima' : ''}`}
+                        key={cita.id}
+                    >
+                        <div className="registro-fecha">
+                            <strong>{cita.fecha.slice(8, 10)}</strong>
+                            <span>
+                                {
+                                    [
+                                        'ENE',
+                                        'FEB',
+                                        'MAR',
+                                        'ABR',
+                                        'MAY',
+                                        'JUN',
+                                        'JUL',
+                                        'AGO',
+                                        'SEP',
+                                        'OCT',
+                                        'NOV',
+                                        'DIC',
+                                    ][Number(cita.fecha.slice(5, 7)) - 1]
+                                }
+                            </span>
+                        </div>
+                        <div>
+                            <span
+                                className={`registro-estado ${cita.estado === 'ATENDIDA' ? 'registro-realizada' : ''}`}
                             >
-                                {citaAbierta === identificador ? 'Ocultar detalle' : 'Ver detalle'}
-                            </button>
-
-                            {citaAbierta === identificador && (
-                                <div className="registro-detalle">
-                                    <strong>{cita.motivo} de {cita.mascota}</strong>
-                                    <span>{cita.fecha} · {cita.hora} · {cita.veterinario}</span>
-                                </div>
-                            )}
-                        </article>
-                    );
-                })}
-
-                <article className="registro-cita">
-                    <div className="registro-fecha">
-                        <strong>12</strong>
-                        <span>SEP</span>
-                    </div>
-
-                    <div>
-                        <span className="registro-estado registro-realizada">
-                            Realizada
-                        </span>
-
-                        <h2>Vacunación anual · Luna</h2>
-
-                        <p>
-                            10:30 hrs · Dra. Fernanda Soto
-                        </p>
-                    </div>
-
-                    <button
-                        type="button"
-                        className="btn btn-volver-tienda"
-                        onClick={() =>
-                            setCitaAbierta(
-                                citaAbierta === 'vacuna' ? '' : 'vacuna'
-                            )
-                        }
-                    >
-                        {citaAbierta === 'vacuna'
-                            ? 'Ocultar resumen'
-                            : 'Ver resumen'}
-                    </button>
-
-                    {citaAbierta === 'vacuna' && (
-                        <div className="registro-detalle">
-                            <strong>
-                                Vacunación anual de Luna
-                            </strong>
-
-                            <span>
-                                Atención realizada el 12 de septiembre a las 10:30 hrs.
+                                {cita.estado === 'RESERVADA'
+                                    ? 'Próxima cita'
+                                    : cita.estado === 'ATENDIDA'
+                                      ? 'Realizada'
+                                      : cita.estado}
                             </span>
+                            <h2>
+                                {cita.motivo} · {cita.mascota}
+                            </h2>
+                            <p>
+                                {cita.hora.slice(0, 5)} hrs · {cita.veterinario}
+                            </p>
                         </div>
-                    )}
-                </article>
-
-                <article className="registro-cita">
-                    <div className="registro-fecha">
-                        <strong>04</strong>
-                        <span>AGO</span>
-                    </div>
-
-                    <div>
-                        <span className="registro-estado registro-realizada">
-                            Realizada
-                        </span>
-
-                        <h2>Control general · Milo</h2>
-
-                        <p>
-                            16:00 hrs · Dr. Martín Rojas
-                        </p>
-                    </div>
-
-                    <button
-                        type="button"
-                        className="btn btn-volver-tienda"
-                        onClick={() =>
-                            setCitaAbierta(
-                                citaAbierta === 'milo' ? '' : 'milo'
-                            )
-                        }
-                    >
-                        {citaAbierta === 'milo'
-                            ? 'Ocultar resumen'
-                            : 'Ver resumen'}
-                    </button>
-
-                    {citaAbierta === 'milo' && (
-                        <div className="registro-detalle">
-                            <strong>
-                                Control general de Milo
-                            </strong>
-
-                            <span>
-                                Atención realizada el 4 de agosto a las 16:00 hrs.
-                            </span>
-                        </div>
-                    )}
-                </article>
-
+                        <button
+                            type="button"
+                            className={
+                                cita.estado === 'RESERVADA'
+                                    ? 'btn btn-tienda'
+                                    : 'btn btn-volver-tienda'
+                            }
+                            onClick={() =>
+                                setCitaAbierta(citaAbierta === cita.id ? null : cita.id)
+                            }
+                        >
+                            {citaAbierta === cita.id ? 'Ocultar detalle' : 'Ver detalle'}
+                        </button>
+                        {citaAbierta === cita.id && (
+                            <div className="registro-detalle">
+                                <strong>
+                                    {cita.servicio} de {cita.mascota}
+                                </strong>
+                                <span>
+                                    {cita.fecha} · {cita.hora.slice(0, 5)} ·{' '}
+                                    {cita.veterinario}
+                                </span>
+                                {cita.estado === 'RESERVADA' && (
+                                    <div className="acciones-cita">
+                                        <button
+                                            className="btn btn-volver-tienda"
+                                            disabled={ocupado}
+                                            onClick={() => abrirReprogramacion(cita.id)}
+                                        >
+                                            Reprogramar
+                                        </button>
+                                        <button
+                                            className="btn btn-eliminar"
+                                            disabled={ocupado}
+                                            onClick={() => cancelar(cita)}
+                                        >
+                                            Cancelar cita
+                                        </button>
+                                    </div>
+                                )}
+                                {editando === cita.id && (
+                                    <div className="formulario-mascota">
+                                        <label htmlFor={`horario-${cita.id}`}>
+                                            Nuevo horario
+                                        </label>
+                                        <select
+                                            id={`horario-${cita.id}`}
+                                            className="form-select"
+                                            value={horarioId}
+                                            onChange={(event) =>
+                                                setHorarioId(event.target.value)
+                                            }
+                                        >
+                                            <option value="">Selecciona</option>
+                                            {horarios.map((horario) => (
+                                                <option
+                                                    key={horario.id}
+                                                    value={horario.id}
+                                                >
+                                                    {horario.fecha} ·{' '}
+                                                    {horario.hora.slice(0, 5)} ·{' '}
+                                                    {horario.veterinario}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            className="btn btn-tienda"
+                                            disabled={ocupado || !horarioId}
+                                            onClick={() => reprogramar(cita)}
+                                        >
+                                            Guardar nuevo horario
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </article>
+                ))}
             </section>
         </main>
     );

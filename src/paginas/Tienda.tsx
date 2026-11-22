@@ -1,11 +1,9 @@
+import { api, pedirDatos, mensajeError } from '../servicios/api';
 
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
-import type {
-    Producto,
-    ProductoCarrito,
-} from '../componentes/organismos/CardTienda';
+import type { Producto, ProductoCarrito } from '../componentes/organismos/CardTienda';
 
 import Carrito from './Carrito';
 import Pago from './Pago';
@@ -13,12 +11,7 @@ import Productos from './Productos';
 import ReservarCita from './ReservarCita';
 import VerProducto from './VerProducto';
 
-type PaginaTienda =
-    | 'productos'
-    | 'carrito'
-    | 'cita'
-    | 'detalle'
-    | 'pago';
+type PaginaTienda = 'productos' | 'carrito' | 'cita' | 'detalle' | 'pago';
 
 export default function Tienda() {
     const { search } = useLocation();
@@ -37,7 +30,9 @@ function ContenidoTienda() {
     const servicioSeleccionado = parametros.get('servicio') ?? '';
 
     const paginaInicial: PaginaTienda =
-        paginaSolicitada === 'carrito' || paginaSolicitada === 'cita'
+        paginaSolicitada === 'carrito' ||
+        paginaSolicitada === 'cita' ||
+        paginaSolicitada === 'pago'
             ? paginaSolicitada
             : 'productos';
 
@@ -45,9 +40,7 @@ function ContenidoTienda() {
         try {
             const guardado = localStorage.getItem('carrito-veterinaria');
 
-            return guardado
-                ? JSON.parse(guardado)
-                : [];
+            return guardado ? JSON.parse(guardado) : [];
         } catch {
             return [];
         }
@@ -55,21 +48,18 @@ function ContenidoTienda() {
 
     const [pagina, setPagina] = useState<PaginaTienda>(paginaInicial);
 
-    const [productoSeleccionado, setProductoSeleccionado] =
-        useState<Producto | null>(null);
+    const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(
+        null,
+    );
 
     useEffect(() => {
-        localStorage.setItem(
-            'carrito-veterinaria',
-            JSON.stringify(carrito)
-        );
+        localStorage.setItem('carrito-veterinaria', JSON.stringify(carrito));
+        window.dispatchEvent(new Event('carrito-actualizado'));
     }, [carrito]);
 
     function agregarProducto(producto: Producto) {
         setCarrito((actual) => {
-            const existe = actual.find(
-                (item) => item.codigo === producto.codigo
-            );
+            const existe = actual.find((item) => item.codigo === producto.codigo);
 
             if (existe) {
                 if (producto.stock <= 0) {
@@ -80,12 +70,9 @@ function ContenidoTienda() {
                     item.codigo === producto.codigo
                         ? {
                               ...item,
-                              cantidad: Math.min(
-                                  item.cantidad + 1,
-                                  item.stock
-                              ),
+                              cantidad: Math.min(item.cantidad + 1, item.stock),
                           }
-                        : item
+                        : item,
                 );
             }
 
@@ -114,30 +101,30 @@ function ContenidoTienda() {
                 item.codigo === codigo
                     ? {
                           ...item,
-                          cantidad: Math.min(
-                              cantidad,
-                              item.stock
-                          ),
+                          cantidad: Math.min(cantidad, item.stock),
                       }
-                    : item
-            )
+                    : item,
+            ),
         );
     }
 
     function eliminarProducto(codigo: string) {
-        setCarrito((actual) =>
-            actual.filter(
-                (item) => item.codigo !== codigo
-            )
-        );
+        setCarrito((actual) => actual.filter((item) => item.codigo !== codigo));
     }
 
     if (pagina === 'productos') {
         return (
             <Productos
-                onVerDetalle={(producto) => {
-                    setProductoSeleccionado(producto);
-                    setPagina('detalle');
+                onVerDetalle={async (producto) => {
+                    try {
+                        const detalle = await pedirDatos<Producto>(
+                            `${api.productos}/api/productos/${encodeURIComponent(producto.codigo)}`,
+                        );
+                        setProductoSeleccionado(detalle);
+                        setPagina('detalle');
+                    } catch (error) {
+                        alert(mensajeError(error));
+                    }
                 }}
                 onAgregar={agregarProducto}
                 carrito={carrito}
@@ -151,10 +138,8 @@ function ContenidoTienda() {
             <VerProducto
                 producto={productoSeleccionado}
                 cantidad={
-                    carrito.find(
-                        (item) =>
-                            item.codigo === productoSeleccionado.codigo
-                    )?.cantidad ?? 0
+                    carrito.find((item) => item.codigo === productoSeleccionado.codigo)
+                        ?.cantidad ?? 0
                 }
                 onAgregar={agregarProducto}
                 onCambiarCantidad={cambiarCantidad}
@@ -175,9 +160,7 @@ function ContenidoTienda() {
     }
 
     if (pagina === 'cita') {
-        const volverAlInicio =
-            origenCita === 'navbar' ||
-            origenCita === 'servicios';
+        const volverAlInicio = origenCita === 'navbar' || origenCita === 'servicios';
 
         const textoVolver =
             origenCita === 'perfil'

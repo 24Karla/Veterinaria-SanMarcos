@@ -6,11 +6,15 @@ import { expect, test } from 'vitest';
 import PerfilVeterinario from '../paginas/PerfilVeterinario';
 
 test('muestra las citas agendadas del veterinario', () => {
-  render(
-    <MemoryRouter>
-      <PerfilVeterinario sesion={{ nombre: 'Fabián', correo: 'fabian@vetsanmarcos.cl' }} />
-    </MemoryRouter>,
-  );
+    render(
+        <MemoryRouter>
+            <PerfilVeterinario
+                sesion={{ nombre: 'Fabián', correo: 'fabian@vetsanmarcos.cl' }}
+            />
+        </MemoryRouter>,
+    );
 
-  expect(screen.getByText('Citas agendadas')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Ver agenda' }).getAttribute('href')).toBe(
+        '/perfil/veterinario/agenda',
+    );
 });

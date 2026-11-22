@@ -1,7 +1,8 @@
+import { crearRutaReserva } from '../../servicios/rutas';
 import { Link } from 'react-router-dom';
 
 export interface Servicio {
-  id: number;
+  id: number | string;
   titulo: string;
   descripcion: string;
   precio: string;
@@ -14,9 +15,7 @@ interface CardServicioProps {
   servicio: Servicio;
 }
 
-export function crearRutaReserva(titulo: string) {
-  return `/tienda?pagina=cita&origen=servicios&servicio=${encodeURIComponent(titulo)}`;
-}
+
 
 export default function CardServicio({ servicio }: CardServicioProps) {
   return (

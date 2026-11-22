@@ -13,7 +13,7 @@ test('rechaza un teléfono que contiene letras', () => {
     fireEvent.change(screen.getByPlaceholderText('ejemplo@correo.com'), {
       target: { value: 'sofia@gmail.com' },
     });
-    fireEvent.change(screen.getByPlaceholderText('+56 9 1234 5678'), {
+    fireEvent.change(screen.getByPlaceholderText('+56912345678'), {
       target: { value: '+569ABC123' },
     });
     fireEvent.change(screen.getByPlaceholderText('Escribe tu consulta aquí...'), {
