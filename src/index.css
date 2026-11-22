@@ -204,6 +204,35 @@ footer {
     letter-spacing: -.08em;
 }
 
+.sesion-alternativa {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .35rem;
+    margin-top: 1rem;
+    color: #6c757d;
+    text-align: center;
+}
+
+.sesion-cambiar-modo,
+.sesion-cambiar-modo:hover,
+.sesion-cambiar-modo:focus,
+.sesion-cambiar-modo:active {
+    padding: .25rem .5rem;
+    border: 0;
+    background: transparent;
+    color: #6c757d;
+    font: inherit;
+    text-decoration: none;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.sesion-cambiar-modo:disabled {
+    cursor: default;
+    opacity: .65;
+}
+
 
 /* ==================================================
    9. PERFILES: ESTRUCTURA GENERAL

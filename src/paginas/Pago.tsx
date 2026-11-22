@@ -1,3 +1,12 @@
+import { Link } from 'react-router-dom';
+import {
+    api,
+    pedirDatos,
+    mensajeError,
+    ErrorApi,
+    obtenerSesion,
+    type PedidoApi,
+} from '../servicios/api';
 
 import { useState, type FormEvent } from 'react';
 import type { ProductoCarrito } from '../componentes/organismos/CardTienda';
@@ -16,18 +25,29 @@ export default function Pago({
     onFinalizar,
 }: PagoProps) {
     const [datos, setDatos] = useState({
-        nombre: '',
-        correo: '',
+        nombre: obtenerSesion()?.nombre || '',
+        correo: obtenerSesion()?.correo || '',
         direccion: '',
         metodo: '',
     });
 
     const [totalPagado, setTotalPagado] = useState<number | null>(null);
+    const [enviando, setEnviando] = useState(false);
+    const [error, setError] = useState('');
+    const [pedidoPendiente, setPedidoPendiente] = useState<number | null>(null);
+    const [referencia] = useState(() => {
+        const clave = 'referencia-pedido-' + (obtenerSesion()?.correo || 'cliente');
+        let valor = sessionStorage.getItem(clave);
+        if (!valor) {
+            valor = crypto.randomUUID();
+            sessionStorage.setItem(clave, valor);
+        }
+        return valor;
+    });
 
     const total = carrito.reduce(
-        (suma, producto) =>
-            suma + producto.precio * producto.cantidad,
-        0
+        (suma, producto) => suma + producto.precio * producto.cantidad,
+        0,
     );
 
     const formatoPrecio = (precio: number) =>
@@ -44,8 +64,10 @@ export default function Pago({
         }));
     }
 
-    function confirmarPago(event: FormEvent<HTMLFormElement>) {
+    async function confirmarPago(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        if (enviando) return;
+        setError('');
 
         const nuevosErrores: Record<string, string> = {};
 
@@ -69,33 +91,48 @@ export default function Pago({
             alert(
                 `Revisa los siguientes datos:\n\n${Object.values(nuevosErrores)
                     .map((error) => `• ${error}`)
-                    .join('\n')}`
+                    .join('\n')}`,
             );
 
             return;
         }
 
-        const pedidoNuevo = {
-            id: Date.now(),
-            fecha: new Date().toLocaleDateString('es-CL'),
-            productos: carrito.map((producto) => ({
-                nombre: producto.nombre,
-                cantidad: producto.cantidad,
-            })),
-            total,
-            estado: 'Confirmado',
-        };
-
+        setEnviando(true);
         try {
-            const guardados = localStorage.getItem('compras-cliente');
-            const comprasAnteriores = guardados ? JSON.parse(guardados) : [];
-            localStorage.setItem('compras-cliente', JSON.stringify([pedidoNuevo, ...comprasAnteriores]));
-        } catch {
-            localStorage.setItem('compras-cliente', JSON.stringify([pedidoNuevo]));
+            const pedido = pedidoPendiente
+                ? await pedirDatos<PedidoApi>(
+                      `${api.pedidos}/api/pedidos/${pedidoPendiente}/confirmar`,
+                      {
+                          method: 'POST',
+                      },
+                  )
+                : await pedirDatos<PedidoApi>(`${api.pedidos}/api/pedidos`, {
+                      method: 'POST',
+                      headers: { 'Idempotency-Key': referencia },
+                      body: JSON.stringify({
+                          nombreCompleto: datos.nombre,
+                          correo: obtenerSesion()?.correo || datos.correo,
+                          direccion: datos.direccion,
+                          metodo: datos.metodo,
+                          productos: carrito.map((producto) => ({
+                              codigo: producto.codigo,
+                              cantidad: producto.cantidad,
+                          })),
+                      }),
+                  });
+            setTotalPagado(pedido.total);
+            sessionStorage.removeItem(
+                'referencia-pedido-' + (obtenerSesion()?.correo || 'cliente'),
+            );
+            onFinalizar();
+        } catch (error) {
+            if (error instanceof ErrorApi && error.pedidoId) {
+                setPedidoPendiente(error.pedidoId);
+            }
+            setError(mensajeError(error));
+        } finally {
+            setEnviando(false);
         }
-
-        setTotalPagado(total);
-        onFinalizar();
     }
 
     if (totalPagado !== null) {
@@ -104,19 +141,16 @@ export default function Pago({
                 <section className="pago-confirmado">
                     <span>✓</span>
 
-                    <h1>¡Compra realizada!</h1>
+                    <h1>¡Pedido confirmado!</h1>
 
                     <p className="pago-confirmado-mensaje">
-                        Enviaremos la confirmación a{' '}
-                        <strong>{datos.correo}</strong>.
+                        El pedido quedó registrado para <strong>{datos.correo}</strong>.
                     </p>
 
                     <div className="pago-confirmado-total">
-                        <span>Total pagado</span>
+                        <span>Total del pedido</span>
 
-                        <strong>
-                            {formatoPrecio(totalPagado)}
-                        </strong>
+                        <strong>{formatoPrecio(totalPagado)}</strong>
                     </div>
 
                     <button
@@ -137,9 +171,7 @@ export default function Pago({
                 <section className="pago-vacio">
                     <h1>No hay productos para pagar</h1>
 
-                    <p>
-                        Agrega productos al carrito antes de continuar.
-                    </p>
+                    <p>Agrega productos al carrito antes de continuar.</p>
 
                     <button
                         type="button"
@@ -153,104 +185,102 @@ export default function Pago({
         );
     }
 
+    if (!obtenerSesion() && carrito.length > 0) {
+        return (
+            <main className="container pagina-pago">
+                <h1>Inicia sesión para realizar tu pedido</h1>
+                <Link to="/login" className="btn btn-tienda">
+                    Iniciar sesión
+                </Link>
+            </main>
+        );
+    }
+
     return (
         <main className="container pagina-pago">
-            <button
-                type="button"
-                className="btn btn-volver-tienda"
-                onClick={onVolver}
-            >
+            <button type="button" className="btn btn-volver-tienda" onClick={onVolver}>
                 ← Volver al carrito
             </button>
 
             <h1>Finalizar compra</h1>
 
-            <p className="pago-subtitulo">
-                Completa tus datos para confirmar tu pedido.
-            </p>
+            <p className="pago-subtitulo">Completa tus datos para confirmar tu pedido.</p>
 
             <div className="pago-contenido">
-                <form
-                    className="pago-formulario"
-                    noValidate
-                    onSubmit={confirmarPago}
-                >
+                <form className="pago-formulario" noValidate onSubmit={confirmarPago}>
                     <h2>Datos de despacho</h2>
+                    {error && (
+                        <p role="alert" className="alert alert-danger">
+                            {error}
+                        </p>
+                    )}
+                    {pedidoPendiente && (
+                        <p>
+                            Pedido #{pedidoPendiente} pendiente. Reintenta para confirmar
+                            el stock.
+                        </p>
+                    )}
+                    <fieldset disabled={enviando || pedidoPendiente !== null}>
+                        <label htmlFor="nombre">Nombre completo</label>
 
-                    <label htmlFor="nombre">
-                        Nombre completo
-                    </label>
+                        <input
+                            id="nombre"
+                            className="form-control"
+                            value={datos.nombre}
+                            onChange={(event) => cambiar('nombre', event.target.value)}
+                        />
 
-                    <input
-                        id="nombre"
-                        className="form-control"
-                        value={datos.nombre}
-                        onChange={(event) =>
-                            cambiar('nombre', event.target.value)
-                        }
-                    />
+                        <label htmlFor="correo">Correo electrónico</label>
 
-                    <label htmlFor="correo">
-                        Correo electrónico
-                    </label>
+                        <input
+                            id="correo"
+                            readOnly
+                            type="email"
+                            className="form-control"
+                            value={datos.correo}
+                            onChange={(event) => cambiar('correo', event.target.value)}
+                        />
 
-                    <input
-                        id="correo"
-                        type="email"
-                        className="form-control"
-                        value={datos.correo}
-                        onChange={(event) =>
-                            cambiar('correo', event.target.value)
-                        }
-                    />
+                        <label htmlFor="direccion">Dirección de despacho</label>
 
-                    <label htmlFor="direccion">
-                        Dirección de despacho
-                    </label>
+                        <input
+                            id="direccion"
+                            className="form-control"
+                            value={datos.direccion}
+                            onChange={(event) => cambiar('direccion', event.target.value)}
+                        />
 
-                    <input
-                        id="direccion"
-                        className="form-control"
-                        value={datos.direccion}
-                        onChange={(event) =>
-                            cambiar('direccion', event.target.value)
-                        }
-                    />
+                        <label htmlFor="metodo">Medio de pago</label>
 
-                    <label htmlFor="metodo">
-                        Medio de pago
-                    </label>
+                        <select
+                            id="metodo"
+                            className="form-select"
+                            value={datos.metodo}
+                            onChange={(event) => cambiar('metodo', event.target.value)}
+                        >
+                            <option value="">Selecciona un medio de pago</option>
 
-                    <select
-                        id="metodo"
-                        className="form-select"
-                        value={datos.metodo}
-                        onChange={(event) =>
-                            cambiar('metodo', event.target.value)
-                        }
-                    >
-                        <option value="">
-                            Selecciona un medio de pago
-                        </option>
+                            <option value="Debito">Tarjeta de débito</option>
 
-                        <option value="Debito">
-                            Tarjeta de débito
-                        </option>
+                            <option value="Credito">Tarjeta de crédito</option>
 
-                        <option value="Credito">
-                            Tarjeta de crédito
-                        </option>
-
-                        <option value="Transferencia">
-                            Transferencia bancaria
-                        </option>
-                    </select>
-
+                            <option value="Transferencia">Transferencia bancaria</option>
+                        </select>
+                    </fieldset>
+                    <p className="small mt-3">
+                        Se registra el pedido y el medio de pago. No se realiza un cobro
+                        bancario en línea.
+                    </p>
                     <button
                         type="submit"
                         className="btn btn-tienda w-100 mt-4"
+                        disabled={enviando}
                     >
-                        Confirmar pago
+                        {enviando
+                            ? 'Confirmando…'
+                            : pedidoPendiente
+                              ? 'Reintentar confirmación'
+                              : 'Confirmar pedido'}
                     </button>
                 </form>
 
@@ -258,18 +288,13 @@ export default function Pago({
                     <h2>Resumen del pedido</h2>
 
                     {carrito.map((producto) => (
-                        <div
-                            className="pago-item"
-                            key={producto.codigo}
-                        >
+                        <div className="pago-item" key={producto.codigo}>
                             <span>
                                 {producto.nombre} × {producto.cantidad}
                             </span>
 
                             <strong>
-                                {formatoPrecio(
-                                    producto.precio * producto.cantidad
-                                )}
+                                {formatoPrecio(producto.precio * producto.cantidad)}
                             </strong>
                         </div>
                     ))}
@@ -277,9 +302,7 @@ export default function Pago({
                     <div className="pago-total">
                         <span>Total</span>
 
-                        <strong>
-                            {formatoPrecio(total)}
-                        </strong>
+                        <strong>{formatoPrecio(total)}</strong>
                     </div>
                 </aside>
             </div>

@@ -1,44 +1,16 @@
-
-// @vitest-environment jsdom
-
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { expect, test, vi } from 'vitest';
 import FormularioSesion from '../componentes/organismos/FormularioSesion';
 
-test('inicia sesión como administrador', () => {
+test('inicia sesión como administrador con la respuesta del servidor', async () => {
+    const sesion = { id: 1, nombre: 'Administración', correo: 'admin@example.com', rol: 'administrador' };
+    const fetchSimulado = vi.fn().mockResolvedValue(new Response(JSON.stringify(sesion), { status: 200 }));
+    vi.stubGlobal('fetch', fetchSimulado);
     const iniciarSesion = vi.fn();
-
-    render(
-        <FormularioSesion onLogin={iniciarSesion} />
-    );
-
-    const correo = document.querySelector<HTMLInputElement>(
-        'input[name="correo"]'
-    )!;
-
-    const clave = document.querySelector<HTMLInputElement>(
-        'input[name="contraseña"]'
-    )!;
-
-    fireEvent.change(correo, {
-        target: {
-            value: 'admin@vetsanmarcos.cl',
-        },
-    });
-
-    fireEvent.change(clave, {
-        target: {
-            value: '1234',
-        },
-    });
-
-    fireEvent.click(
-        screen.getByRole('button', { name: 'Ingresar' })
-    );
-
-    expect(iniciarSesion).toHaveBeenCalledWith({
-        nombre: 'Administrador',
-        correo: 'admin@vetsanmarcos.cl',
-        rol: 'administrador',
-    });
+    render(<FormularioSesion onLogin={iniciarSesion} />);
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), { target: { value: 'admin@example.com' } });
+    fireEvent.change(screen.getByLabelText('Contraseña'), { target: { value: 'ClaveDePrueba' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Ingresar' }));
+    await waitFor(() => expect(iniciarSesion).toHaveBeenCalledWith(sesion));
+    expect(fetchSimulado).toHaveBeenCalledWith(expect.stringContaining('/registro/login'), expect.objectContaining({ method: 'POST' }));
 });

@@ -11,7 +11,7 @@ type Props ={
 function CampoSesion({etiqueta, tipo, nombre, valor, alCambiar}: Props){
     return(
         <div className="mb-3">
-            <label className="form-label">
+            <label className="form-label" htmlFor={nombre}>
                 {etiqueta}
             </label>
             <Input tipo={tipo} nombre={nombre} valor={valor} alCambiar={alCambiar} />

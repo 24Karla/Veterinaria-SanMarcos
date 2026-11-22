@@ -1,6 +1,16 @@
-
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import BotonVolver from '../componentes/atomos/BotonVolver';
+import EstadoApi from '../componentes/moleculas/EstadoApi';
+import {
+    api,
+    pedirDatos,
+    obtenerSesion,
+    mensajeError,
+    type HorarioApi,
+    type MascotaApi,
+    type CitaApi,
+} from '../servicios/api';
 
 interface Props {
     onVolver: () => void;
@@ -8,101 +18,84 @@ interface Props {
     servicioSeleccionado?: string;
 }
 
-interface DatosCita {
-    dueno: string;
-    correo: string;
-    mascota: string;
-    especie: string;
-    fecha: string;
-    hora: string;
-    motivo: string;
-}
-
-const datosIniciales: DatosCita = {
-    dueno: '',
-    correo: '',
-    mascota: '',
-    especie: '',
-    fecha: '',
-    hora: '',
-    motivo: '',
-};
-
-const horarios = [
-    '09:00',
-    '10:00',
-    '11:00',
-    '12:00',
-    '15:00',
-    '16:00',
-];
-
 export default function ReservarCita({
     onVolver,
     textoVolver = 'Volver a productos',
     servicioSeleccionado,
 }: Props) {
-    const [datos, setDatos] = useState<DatosCita>(datosIniciales);
-    const [reservada, setReservada] = useState(false);
+    const sesion = obtenerSesion();
+    const [horarios, setHorarios] = useState<HorarioApi[]>([]);
+    const [mascotas, setMascotas] = useState<MascotaApi[]>([]);
+    const [mascotaId, setMascotaId] = useState('');
+    const [horarioId, setHorarioId] = useState('');
+    const [fecha, setFecha] = useState('');
+    const [motivo, setMotivo] = useState('');
+    const [cargando, setCargando] = useState(true);
+    const [enviando, setEnviando] = useState(false);
+    const [error, setError] = useState('');
+    const [reservada, setReservada] = useState<CitaApi | null>(null);
+    const clienteId = sesion?.id;
 
-    const cambiar = (campo: keyof DatosCita, valor: string) => {
-        setDatos((actual) => ({
-            ...actual,
-            [campo]: valor,
-        }));
-    };
+    useEffect(() => {
+        if (!clienteId) return;
+        Promise.all([
+            pedirDatos<HorarioApi[]>(`${api.agenda}/api/horarios`),
+            pedirDatos<MascotaApi[]>(
+                `${api.mascotas}/api/mascotas?clienteId=${clienteId}`,
+            ),
+        ])
+            .then(([horarios, mascotas]) => {
+                setHorarios(horarios);
+                setMascotas(mascotas);
+            })
+            .catch((error) => setError(mensajeError(error)))
+            .finally(() => setCargando(false));
+    }, [clienteId]);
 
-    function reservar(event: FormEvent<HTMLFormElement>) {
+    async function reservar(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-
-        const errores = [
-            !datos.dueno.trim() && 'Ingresa el nombre del dueño.',
-            !/^\S+@\S+\.\S+$/.test(datos.correo) &&
-                'Ingresa un correo válido.',
-            !datos.mascota.trim() && 'Ingresa el nombre de la mascota.',
-            !datos.especie && 'Selecciona una especie.',
-            !datos.fecha && 'Selecciona una fecha.',
-            !datos.hora && 'Selecciona una hora.',
-            !datos.motivo.trim() && 'Indica el motivo de consulta.',
-        ].filter(Boolean) as string[];
-
-        if (errores.length > 0) {
-            alert(
-                `Revisa los siguientes datos:\n\n${errores
-                    .map((error) => `• ${error}`)
-                    .join('\n')}`
-            );
-
+        if (enviando) return;
+        const mascota = mascotas.find((mascota) => mascota.id === Number(mascotaId));
+        if (!mascota || !horarioId || !motivo.trim()) {
+            setError('Selecciona tu mascota, un horario disponible y el motivo.');
             return;
         }
-
-        const citaNueva = {
-            mascota: datos.mascota.trim(),
-            fecha: datos.fecha,
-            hora: datos.hora,
-            motivo: datos.motivo.trim(),
-            veterinario: 'Por confirmar',
-        };
-
+        setEnviando(true);
+        setError('');
         try {
-            const guardadas = localStorage.getItem('citas-cliente');
-
-            const citasAnteriores = guardadas
-                ? JSON.parse(guardadas)
-                : [];
-
-            localStorage.setItem(
-                'citas-cliente',
-                JSON.stringify([citaNueva, ...citasAnteriores])
-            );
-        } catch {
-            localStorage.setItem(
-                'citas-cliente',
-                JSON.stringify([citaNueva])
-            );
+            const cita = await pedirDatos<CitaApi>(`${api.agenda}/api/citas`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    horarioId: Number(horarioId),
+                    dueno: sesion?.nombre,
+                    correo: sesion?.correo,
+                    mascota: mascota.nombre,
+                    especie: mascota.especie,
+                    servicio: servicioSeleccionado || 'Consulta general',
+                    motivo: motivo.trim(),
+                }),
+            });
+            setReservada(cita);
+        } catch (error) {
+            setError(mensajeError(error));
+            pedirDatos<HorarioApi[]>(`${api.agenda}/api/horarios`)
+                .then(setHorarios)
+                .catch(() => {});
+            setHorarioId('');
+        } finally {
+            setEnviando(false);
         }
+    }
 
-        setReservada(true);
+    if (!sesion) {
+        return (
+            <main className="container pagina-cita">
+                <h1>Inicia sesión para reservar</h1>
+                <Link className="btn btn-tienda" to="/login">
+                    Iniciar sesión
+                </Link>
+            </main>
+        );
     }
 
     if (reservada) {
@@ -110,23 +103,13 @@ export default function ReservarCita({
             <main className="container pagina-cita">
                 <section className="cita-confirmada">
                     <span>✓</span>
-
                     <h1>¡Cita reservada!</h1>
-
                     <p>
-                        Enviaremos la confirmación a {datos.correo}.
+                        {reservada.mascota}: {reservada.fecha} a las{' '}
+                        {reservada.hora.slice(0, 5)} con {reservada.veterinario}.
                     </p>
-
-                    <p>
-                        <strong>{datos.mascota}</strong> tiene una cita el{' '}
-                        {datos.fecha} a las {datos.hora}.
-                    </p>
-
-                    <button
-                        type="button"
-                        className="btn btn-tienda"
-                        onClick={onVolver}
-                    >
+                    <p>Número de reserva: {reservada.id}.</p>
+                    <button className="btn btn-tienda" onClick={onVolver}>
                         {textoVolver}
                     </button>
                 </section>
@@ -136,167 +119,89 @@ export default function ReservarCita({
 
     return (
         <main className="container pagina-cita">
-            <BotonVolver
-                onClick={onVolver}
-                texto={`← ${textoVolver}`}
-            />
-
+            <BotonVolver onClick={onVolver} texto={`← ${textoVolver}`} />
             <h1>Reservar cita</h1>
-
-            <p className="cita-subtitulo">
-                Agenda una atención para tu mascota.
-            </p>
-        
-            {servicioSeleccionado && (
-                <p className="mb-4 fw-bold texto-marca">
-                    Servicio seleccionado: {servicioSeleccionado}
+            <EstadoApi cargando={cargando} error={error} />
+            {servicioSeleccionado && <p>Servicio: {servicioSeleccionado}</p>}
+            {!cargando && mascotas.length === 0 && (
+                <p>
+                    Primero registra una mascota en{' '}
+                    <Link to="/perfil/cliente">tu perfil</Link>.
                 </p>
             )}
-            <form
-                className="formulario-cita"
-                noValidate
-                onSubmit={reservar}
-            >
-                <h2>Datos de la atención</h2>
-
-                <div className="row g-3">
-                    <Campo
-                        etiqueta="Nombre del dueño"
-                        id="dueno"
-                        valor={datos.dueno}
-                        cambiar={(valor) => cambiar('dueno', valor)}
-                    />
-
-                    <Campo
-                        etiqueta="Correo electrónico"
-                        id="correo"
-                        tipo="email"
-                        valor={datos.correo}
-                        cambiar={(valor) => cambiar('correo', valor)}
-                    />
-
-                    <Campo
-                        etiqueta="Nombre de la mascota"
-                        id="mascota"
-                        valor={datos.mascota}
-                        cambiar={(valor) => cambiar('mascota', valor)}
-                    />
-
-                    <div className="col-md-6">
-                        <label htmlFor="especie">
-                            Especie
-                        </label>
-
-                        <select
-                            id="especie"
-                            className="form-select"
-                            value={datos.especie}
-                            onChange={(event) =>
-                                cambiar('especie', event.target.value)
-                            }
-                        >
-                            <option value="">
-                                Selecciona una especie
-                            </option>
-
-                            <option value="Perro">Perro</option>
-                            <option value="Gato">Gato</option>
-                            <option value="Otro">Otro</option>
-                        </select>
-                    </div>
-
-                    <Campo
-                        etiqueta="Fecha"
-                        id="fecha"
-                        tipo="date"
-                        valor={datos.fecha}
-                        cambiar={(valor) => cambiar('fecha', valor)}
-                    />
-
-                    <div className="col-md-6">
-                        <label htmlFor="hora">
-                            Hora
-                        </label>
-
-                        <select
-                            id="hora"
-                            className="form-select"
-                            value={datos.hora}
-                            onChange={(event) =>
-                                cambiar('hora', event.target.value)
-                            }
-                        >
-                            <option value="">
-                                Selecciona una hora
-                            </option>
-
-                            {horarios.map((hora) => (
-                                <option
-                                    key={hora}
-                                    value={hora}
-                                >
-                                    {hora}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="col-12">
-                        <label htmlFor="motivo">
-                            Motivo de consulta
-                        </label>
-
-                        <textarea
-                            id="motivo"
-                            className="form-control"
-                            rows={4}
-                            value={datos.motivo}
-                            onChange={(event) =>
-                                cambiar('motivo', event.target.value)
-                            }
-                        />
-                    </div>
-                </div>
-
-                <button
-                    type="submit"
-                    className="btn btn-tienda mt-4"
+            <form className="formulario-cita" onSubmit={reservar}>
+                <p>
+                    Dueño: {sesion.nombre} · {sesion.correo}
+                </p>
+                <label htmlFor="mascota">Mascota</label>
+                <select
+                    id="mascota"
+                    className="form-select mb-3"
+                    value={mascotaId}
+                    onChange={(event) => setMascotaId(event.target.value)}
                 >
-                    Reservar cita
+                    <option value="">Selecciona tu mascota</option>
+                    {mascotas.map((mascota) => (
+                        <option key={mascota.id} value={mascota.id}>
+                            {mascota.nombre} · {mascota.especie}
+                        </option>
+                    ))}
+                </select>
+                <label htmlFor="fecha">Fecha</label>
+                <select
+                    id="fecha"
+                    className="form-select mb-3"
+                    value={fecha}
+                    onChange={(event) => {
+                        setFecha(event.target.value);
+                        setHorarioId('');
+                    }}
+                >
+                    <option value="">Selecciona una fecha disponible</option>
+                    {[...new Set(horarios.map((horario) => horario.fecha))].map(
+                        (fecha) => (
+                            <option key={fecha}>{fecha}</option>
+                        ),
+                    )}
+                </select>
+                <label htmlFor="horario">Hora y veterinario</label>
+                <select
+                    id="horario"
+                    className="form-select mb-3"
+                    value={horarioId}
+                    onChange={(event) => setHorarioId(event.target.value)}
+                >
+                    <option value="">Selecciona un horario</option>
+                    {horarios
+                        .filter((horario) => horario.fecha === fecha)
+                        .map((horario) => (
+                            <option key={horario.id} value={horario.id}>
+                                {horario.hora.slice(0, 5)} · {horario.veterinario}
+                            </option>
+                        ))}
+                </select>
+                {!cargando && !error && horarios.length === 0 && (
+                    <p>
+                        No hay horarios disponibles. Administración debe habilitar nuevos
+                        horarios.
+                    </p>
+                )}
+                <label htmlFor="motivo">Motivo de consulta</label>
+                <textarea
+                    id="motivo"
+                    className="form-control"
+                    rows={4}
+                    maxLength={2000}
+                    value={motivo}
+                    onChange={(event) => setMotivo(event.target.value)}
+                />
+                <button
+                    className="btn btn-tienda mt-3"
+                    disabled={enviando || cargando || mascotas.length === 0}
+                >
+                    {enviando ? 'Reservando…' : 'Reservar cita'}
                 </button>
             </form>
         </main>
-    );
-}
-
-interface CampoProps {
-    etiqueta: string;
-    id: string;
-    tipo?: string;
-    valor: string;
-    cambiar: (valor: string) => void;
-}
-
-function Campo({
-    etiqueta,
-    id,
-    tipo = 'text',
-    valor,
-    cambiar,
-}: CampoProps) {
-    return (
-        <div className="col-md-6">
-            <label htmlFor={id}>
-                {etiqueta}
-            </label>
-
-            <input
-                id={id}
-                type={tipo}
-                className="form-control"
-                value={valor}
-                onChange={(event) => cambiar(event.target.value)}
-            />
-        </div>
     );
 }

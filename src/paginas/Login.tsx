@@ -1,4 +1,5 @@
 import FormularioSesion from "../componentes/organismos/FormularioSesion";
+import { useLocation } from "react-router-dom";
 
 interface LoginProps {
     onLogin: (sesion: {
@@ -9,12 +10,13 @@ interface LoginProps {
 }
 
 function Login({ onLogin }: LoginProps) {
+    const ubicacion = useLocation();
+
     return (
         <div className="container mt-5 login-container">
             <div className="row shadow-sm rounded-4 overflow-hidden">
                 <div className="col-md-6 p-4 p-md-5 bg-white">
-                    <h2 className="titulo-login mb-4">Inicio de sesión</h2>
-                    <FormularioSesion onLogin={onLogin} />
+                    <FormularioSesion key={ubicacion.key} onLogin={onLogin} />
                 </div>
 
                 <div className="col-md-6 d-none d-md-block">

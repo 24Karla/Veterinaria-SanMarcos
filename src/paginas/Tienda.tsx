@@ -1,3 +1,4 @@
+import { api, pedirDatos, mensajeError } from '../servicios/api';
 
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -135,9 +136,16 @@ function ContenidoTienda() {
     if (pagina === 'productos') {
         return (
             <Productos
-                onVerDetalle={(producto) => {
-                    setProductoSeleccionado(producto);
-                    setPagina('detalle');
+                onVerDetalle={async (producto) => {
+                    try {
+                        const detalle = await pedirDatos<Producto>(
+                                `${api.productos}/api/productos/${encodeURIComponent(producto.codigo)}`
+                        );
+                        setProductoSeleccionado(detalle);
+                        setPagina('detalle');
+                    } catch (error) {
+                        alert(mensajeError(error));
+                    }
                 }}
                 onAgregar={agregarProducto}
                 carrito={carrito}

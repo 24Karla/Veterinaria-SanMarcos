@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { crearRutaReserva } from '../componentes/organismos/CardServicio';
+import { crearRutaReserva } from '../servicios/rutas';
 
 test('lleva a la reserva con el servicio seleccionado', () => {
   expect(crearRutaReserva('Consulta general'))

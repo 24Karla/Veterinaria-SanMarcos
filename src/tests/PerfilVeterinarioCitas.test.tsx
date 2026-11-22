@@ -12,5 +12,6 @@ test('muestra las citas agendadas del veterinario', () => {
     </MemoryRouter>,
   );
 
-  expect(screen.getByText('Citas agendadas')).toBeTruthy();
+  expect(screen.getByRole('link', { name: 'Ver mi agenda' }).getAttribute('href'))
+    .toBe('/perfil/veterinario/agenda');
 });

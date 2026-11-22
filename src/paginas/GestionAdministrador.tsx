@@ -1,71 +1,574 @@
-
-import PaginaGestion from './PaginaGestion';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
+import EstadoApi from '../componentes/moleculas/EstadoApi';
+import {
+    api,
+    pedirDatos,
+    mensajeError,
+    type CitaApi,
+    type HorarioApi,
+    type PedidoApi,
+    type UsuarioApi,
+    type ContactoApi,
+} from '../servicios/api';
 
 export function CitasAdministrador() {
+    const [citas, setCitas] = useState<CitaApi[]>([]);
+    const [horarios, setHorarios] = useState<HorarioApi[]>([]);
+    const [equipo, setEquipo] = useState<UsuarioApi[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState('');
+    const [ocupado, setOcupado] = useState(false);
+    const [datos, setDatos] = useState({ fecha: '', hora: '', veterinario: '' });
+
+    useEffect(() => {
+        Promise.all([
+            pedirDatos<CitaApi[]>(`${api.agenda}/api/citas`),
+            pedirDatos<HorarioApi[]>(`${api.agenda}/api/horarios`),
+            pedirDatos<UsuarioApi[]>(`${api.usuarios}/registro/equipo`),
+        ])
+            .then(([citas, horarios, equipo]) => {
+                setCitas(citas);
+                setHorarios(horarios);
+                setEquipo(equipo);
+            })
+            .catch((error) => setError(mensajeError(error)))
+            .finally(() => setCargando(false));
+    }, []);
+
+    async function crearHorario(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
+        try {
+            const horario = await pedirDatos<HorarioApi>(`${api.agenda}/api/horarios`, {
+                method: 'POST',
+                body: JSON.stringify(datos),
+            });
+            setHorarios((actuales) => [...actuales, horario]);
+            setDatos({ ...datos, hora: '' });
+        } catch (error) {
+            setError(mensajeError(error));
+        } finally {
+            setOcupado(false);
+        }
+    }
+
+    async function cambiarCita(cita: CitaApi, atender: boolean) {
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
+        try {
+            await pedirDatos(
+                `${api.agenda}/api/citas/${cita.id}${atender ? '/atendida' : ''}`,
+                { method: atender ? 'PUT' : 'DELETE' },
+            );
+            setCitas((actuales) =>
+                actuales.map((actual) =>
+                    actual.id === cita.id
+                        ? { ...actual, estado: atender ? 'ATENDIDA' : 'CANCELADA' }
+                        : actual,
+                ),
+            );
+            setHorarios(await pedirDatos<HorarioApi[]>(`${api.agenda}/api/horarios`));
+        } catch (error) {
+            setError(mensajeError(error));
+        } finally {
+            setOcupado(false);
+        }
+    }
+
+    async function desactivarHorario(id: number) {
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
+        try {
+            await pedirDatos(`${api.agenda}/api/horarios/${id}`, { method: 'DELETE' });
+            setHorarios((actuales) => actuales.filter((horario) => horario.id !== id));
+        } catch (error) {
+            setError(mensajeError(error));
+        } finally {
+            setOcupado(false);
+        }
+    }
+
     return (
-        <PaginaGestion
-            etiqueta="ADMINISTRACIÓN"
-            titulo="Flujo de citas"
-            descripcion="Organiza las atenciones y disponibilidad de la veterinaria."
-            volverA="/perfil/administrador"
-            registros={[
-                    {
-                        titulo: '18 citas para hoy',
-                        descripcion: '12 confirmadas · 6 pendientes.',
-                        imagen: '/img/calendario.webp',
-                    },
-                {
-                    titulo: '4 veterinarios en turno',
-                    descripcion: 'Agenda disponible hasta las 19:30 hrs.',
-                    imagen: '/img/turno.png',
-                },
-            ]}
-        />
+        <main className="container panel-perfil">
+            <Link to="/perfil/administrador" className="btn btn-volver-tienda mb-4">
+                ← Volver a mi perfil
+            </Link>
+            <h1>Flujo de citas y horarios</h1>
+            <EstadoApi cargando={cargando} error={error} />
+            <form className="perfil-tarjeta mb-4" onSubmit={crearHorario}>
+                <h2>Habilitar un horario</h2>
+                <label htmlFor="fecha-horario">Fecha</label>
+                <input
+                    className="form-control"
+                    id="fecha-horario"
+                    type="date"
+                    required
+                    value={datos.fecha}
+                    onChange={(event) =>
+                        setDatos({ ...datos, fecha: event.target.value })
+                    }
+                />
+                <label htmlFor="hora-horario">Hora</label>
+                <input
+                    className="form-control"
+                    id="hora-horario"
+                    type="time"
+                    required
+                    value={datos.hora}
+                    onChange={(event) => setDatos({ ...datos, hora: event.target.value })}
+                />
+                <label htmlFor="vet-horario">Veterinario</label>
+                <select
+                    className="form-select"
+                    id="vet-horario"
+                    required
+                    value={datos.veterinario}
+                    onChange={(event) =>
+                        setDatos({ ...datos, veterinario: event.target.value })
+                    }
+                >
+                    <option value="">Selecciona un veterinario</option>
+                    {equipo.map((usuario) => (
+                        <option key={usuario.id} value={usuario.nombre}>
+                            {usuario.nombre}
+                        </option>
+                    ))}
+                </select>
+                <button className="btn btn-tienda mt-3" disabled={ocupado}>
+                    Crear horario
+                </button>
+            </form>
+            <h2>Horarios disponibles</h2>
+            {horarios.map((horario) => (
+                <div className="perfil-tarjeta mb-2" key={horario.id}>
+                    {horario.fecha} · {horario.hora.slice(0, 5)} · {horario.veterinario}
+                    <button
+                        className="btn btn-outline-danger ms-3"
+                        disabled={ocupado}
+                        onClick={() => desactivarHorario(horario.id)}
+                    >
+                        Desactivar
+                    </button>
+                </div>
+            ))}
+            <h2 className="mt-4">Citas registradas</h2>
+            {!cargando && !error && citas.length === 0 && (
+                <p>No hay citas registradas.</p>
+            )}
+            {citas.map((cita) => (
+                <article className="perfil-tarjeta mb-3" key={cita.id}>
+                    <h3>
+                        {cita.mascota} · {cita.servicio}
+                    </h3>
+                    <p>
+                        {cita.dueno} · {cita.correo}
+                    </p>
+                    <p>
+                        {cita.fecha} · {cita.hora.slice(0, 5)} · {cita.veterinario} ·{' '}
+                        {cita.estado}
+                    </p>
+                    {cita.estado === 'RESERVADA' && (
+                        <>
+                            <button
+                                className="btn btn-tienda me-2"
+                                disabled={ocupado}
+                                onClick={() => cambiarCita(cita, true)}
+                            >
+                                Marcar atendida
+                            </button>
+                            <button
+                                className="btn btn-outline-danger"
+                                disabled={ocupado}
+                                onClick={() => cambiarCita(cita, false)}
+                            >
+                                Cancelar cita
+                            </button>
+                        </>
+                    )}
+                </article>
+            ))}
+        </main>
     );
 }
 
 export function VentasAdministrador() {
+    const [pedidos, setPedidos] = useState<PedidoApi[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState('');
+    const [ocupado, setOcupado] = useState(false);
+    useEffect(() => {
+        pedirDatos<PedidoApi[]>(`${api.pedidos}/api/pedidos`)
+            .then(setPedidos)
+            .catch((error) => setError(mensajeError(error)))
+            .finally(() => setCargando(false));
+    }, []);
+
+    async function cambiarEstado(id: number, estado: string) {
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
+        try {
+            const actualizado = await pedirDatos<PedidoApi>(
+                `${api.pedidos}/api/pedidos/${id}/estado`,
+                { method: 'PATCH', body: JSON.stringify({ estado }) },
+            );
+            setPedidos((actuales) =>
+                actuales.map((pedido) => (pedido.id === id ? actualizado : pedido)),
+            );
+        } catch (error) {
+            setError(mensajeError(error));
+        } finally {
+            setOcupado(false);
+        }
+    }
+
     return (
-        <PaginaGestion
-            etiqueta="ADMINISTRACIÓN"
-            titulo="Pedidos y ventas"
-            descripcion="Consulta los pagos y pedidos de la tienda."
-            volverA="/perfil/administrador"
-            registros={[
-                {
-                    titulo: '12 pedidos confirmados',
-                    descripcion: 'Ventas acumuladas de hoy: $324.500.',
-                    imagen: '/img/pedidos.png',
-                },
-                {
-                    titulo: '4 pedidos en preparación',
-                    descripcion: 'Pendientes de entrega o retiro.',
-                    imagen: '/img/preparacion.png',
-                },
-            ]}
-        />
+        <main className="container panel-perfil">
+            <Link to="/perfil/administrador" className="btn btn-volver-tienda mb-4">
+                ← Volver a mi perfil
+            </Link>
+            <h1>Pedidos y ventas</h1>
+            <EstadoApi cargando={cargando} error={error} />
+            {!cargando && !error && pedidos.length === 0 && (
+                <p>No hay pedidos registrados.</p>
+            )}
+            {pedidos.map((pedido) => (
+                <article className="perfil-tarjeta mb-3" key={pedido.id}>
+                    <h2>
+                        Pedido #{pedido.id} · {pedido.nombreCompleto}
+                    </h2>
+                    <p>
+                        {pedido.correo} · {pedido.estado} · $
+                        {pedido.total.toLocaleString('es-CL')}
+                    </p>
+                    <details>
+                        <summary>Ver detalle</summary>
+                        <p>Despacho: {pedido.direccion}</p>
+                        {pedido.productos.map((producto) => (
+                            <p key={producto.codigo}>
+                                {producto.nombre} × {producto.cantidad}
+                            </p>
+                        ))}
+                    </details>
+                    {pedido.estado === 'CONFIRMADO' && (
+                        <button
+                            className="btn btn-tienda me-2 mt-2"
+                            disabled={ocupado}
+                            onClick={() => cambiarEstado(pedido.id, 'ENVIADO')}
+                        >
+                            Marcar enviado
+                        </button>
+                    )}
+                    {pedido.estado === 'ENVIADO' && (
+                        <button
+                            className="btn btn-tienda mt-2"
+                            disabled={ocupado}
+                            onClick={() => cambiarEstado(pedido.id, 'ENTREGADO')}
+                        >
+                            Marcar entregado
+                        </button>
+                    )}
+                    {['PENDIENTE', 'CONFIRMADO', 'CANCELACION_PENDIENTE'].includes(
+                        pedido.estado,
+                    ) && (
+                        <button
+                            className="btn btn-outline-danger mt-2"
+                            disabled={ocupado}
+                            onClick={() => cambiarEstado(pedido.id, 'CANCELADO')}
+                        >
+                            Cancelar pedido
+                        </button>
+                    )}
+                </article>
+            ))}
+        </main>
     );
 }
 
+const usuarioVacio = {
+    nombre: '',
+    email: '',
+    password: '',
+    rol: 'CLIENTE',
+    telefono: '',
+    ciudad: '',
+    especialidad: '',
+    experiencia: '',
+    bio: '',
+    imagen: '',
+};
+
 export function UsuariosAdministrador() {
+    const [usuarios, setUsuarios] = useState<UsuarioApi[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState('');
+    const [ocupado, setOcupado] = useState(false);
+    const [editando, setEditando] = useState<number | null>(null);
+    const [mostrar, setMostrar] = useState(false);
+    const [datos, setDatos] = useState(usuarioVacio);
+    useEffect(() => {
+        pedirDatos<UsuarioApi[]>(`${api.usuarios}/registro`)
+            .then(setUsuarios)
+            .catch((error) => setError(mensajeError(error)))
+            .finally(() => setCargando(false));
+    }, []);
+
+    function editar(usuario?: UsuarioApi) {
+        setEditando(usuario?.id || null);
+        setDatos(
+            usuario
+                ? {
+                      ...usuarioVacio,
+                      ...usuario,
+                      password: '',
+                      telefono: usuario.telefono || '',
+                      ciudad: usuario.ciudad || '',
+                      especialidad: usuario.especialidad || '',
+                      experiencia: usuario.experiencia || '',
+                      bio: usuario.bio || '',
+                      imagen: usuario.imagen || '',
+                  }
+                : usuarioVacio,
+        );
+        setMostrar(true);
+    }
+
+    async function guardar(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
+        try {
+            // Se envían solo los campos editables, nunca el ID de otro usuario.
+            const cuerpo = {
+                nombre: datos.nombre,
+                email: datos.email,
+                password: datos.password,
+                rol: datos.rol,
+                telefono: datos.telefono,
+                ciudad: datos.ciudad,
+                especialidad: datos.especialidad,
+                experiencia: datos.experiencia,
+                bio: datos.bio,
+                imagen: datos.imagen,
+            };
+            await pedirDatos(
+                `${api.usuarios}/registro/${editando ? 'actualizar/' + editando : 'agregar'}`,
+                { method: editando ? 'PUT' : 'POST', body: JSON.stringify(cuerpo) },
+            );
+            setUsuarios(await pedirDatos<UsuarioApi[]>(`${api.usuarios}/registro`));
+            setMostrar(false);
+        } catch (error) {
+            setError(mensajeError(error));
+        } finally {
+            setOcupado(false);
+        }
+    }
+
+    async function eliminar(id: number) {
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
+        try {
+            await pedirDatos(`${api.usuarios}/registro/eliminar/${id}`, {
+                method: 'DELETE',
+            });
+            setUsuarios((actuales) => actuales.filter((usuario) => usuario.id !== id));
+        } catch (error) {
+            setError(mensajeError(error));
+        } finally {
+            setOcupado(false);
+        }
+    }
+
     return (
-        <PaginaGestion
-            etiqueta="ADMINISTRACIÓN"
-            titulo="Equipo y clientes"
-            descripcion="Administra los usuarios de la veterinaria."
-            volverA="/perfil/administrador"
-            registros={[
-                {
-                    titulo: '4 veterinarios activos',
-                    descripcion: 'Todos cuentan con agenda asignada.',
-                    imagen: '/img/veterinarios.jpg',
-                },
-                {
-                    titulo: '156 clientes registrados',
-                    descripcion: '8 nuevos clientes durante este mes.',
-                    imagen: '/img/mascotasclientes.png',
-                },
-            ]}
-        />
+        <main className="container panel-perfil">
+            <Link to="/perfil/administrador" className="btn btn-volver-tienda mb-4">
+                ← Volver a mi perfil
+            </Link>
+            <h1>Equipo y clientes</h1>
+            <EstadoApi cargando={cargando} error={error} />
+            <button className="btn btn-tienda mb-3" onClick={() => editar()}>
+                Agregar usuario
+            </button>
+            {mostrar && (
+                <form className="perfil-tarjeta mb-4" onSubmit={guardar}>
+                    <h2>{editando ? 'Editar usuario' : 'Nuevo usuario'}</h2>
+                    {(Object.keys(usuarioVacio) as (keyof typeof usuarioVacio)[])
+                        .filter((campo) => campo !== 'rol')
+                        .map((campo) => (
+                            <div key={campo} className="mb-2">
+                                <label htmlFor={`usuario-${campo}`}>
+                                    {
+                                        {
+                                            nombre: 'Nombre',
+                                            email: 'Correo',
+                                            password: 'Contraseña',
+                                            rol: 'Rol',
+                                            telefono: 'Teléfono',
+                                            ciudad: 'Ciudad',
+                                            especialidad: 'Especialidad',
+                                            experiencia: 'Experiencia',
+                                            bio: 'Biografía',
+                                            imagen: 'Ruta de imagen',
+                                        }[campo]
+                                    }
+                                </label>
+                                <input
+                                    id={`usuario-${campo}`}
+                                    className="form-control"
+                                    type={
+                                        campo === 'password'
+                                            ? 'password'
+                                            : campo === 'email'
+                                              ? 'email'
+                                              : 'text'
+                                    }
+                                    required={
+                                        ['nombre', 'email'].includes(campo) ||
+                                        (campo === 'password' && !editando)
+                                    }
+                                    value={datos[campo]}
+                                    onChange={(event) =>
+                                        setDatos({
+                                            ...datos,
+                                            [campo]: event.target.value,
+                                        })
+                                    }
+                                />
+                            </div>
+                        ))}
+                    {editando && <p>Deja la contraseña vacía para conservarla.</p>}
+                    <label htmlFor="usuario-rol">Rol</label>
+                    <select
+                        className="form-select"
+                        id="usuario-rol"
+                        value={datos.rol}
+                        onChange={(event) =>
+                            setDatos({ ...datos, rol: event.target.value })
+                        }
+                    >
+                        <option>CLIENTE</option>
+                        <option>VETERINARIO</option>
+                        <option>ADMINISTRADOR</option>
+                        <option>RECEPCIONISTA</option>
+                    </select>
+                    <button className="btn btn-tienda mt-3 me-2" disabled={ocupado}>
+                        Guardar usuario
+                    </button>
+                    <button
+                        className="btn btn-link mt-3"
+                        type="button"
+                        onClick={() => setMostrar(false)}
+                    >
+                        Cancelar
+                    </button>
+                </form>
+            )}
+            {usuarios.map((usuario) => (
+                <article className="perfil-tarjeta mb-3" key={usuario.id}>
+                    <h2>{usuario.nombre}</h2>
+                    <p>
+                        {usuario.email} · {usuario.rol}
+                    </p>
+                    <p>{usuario.especialidad}</p>
+                    <button
+                        className="btn btn-volver-tienda me-2"
+                        onClick={() => editar(usuario)}
+                    >
+                        Editar
+                    </button>
+                    <button
+                        className="btn btn-outline-danger"
+                        disabled={ocupado}
+                        onClick={() => eliminar(usuario.id)}
+                    >
+                        Eliminar
+                    </button>
+                </article>
+            ))}
+        </main>
+    );
+}
+
+export function MensajesAdministrador() {
+    const [mensajes, setMensajes] = useState<ContactoApi[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState('');
+    const [ocupado, setOcupado] = useState(false);
+    useEffect(() => {
+        pedirDatos<ContactoApi[]>(`${api.mensajeria}/api/contactos`)
+            .then(setMensajes)
+            .catch((error) => setError(mensajeError(error)))
+            .finally(() => setCargando(false));
+    }, []);
+
+    async function cambiar(mensaje: ContactoApi, eliminar: boolean) {
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
+        try {
+            await pedirDatos(
+                `${api.mensajeria}/api/contactos/${mensaje.id}${eliminar ? '' : '/atendido'}`,
+                { method: eliminar ? 'DELETE' : 'PUT' },
+            );
+            setMensajes((actuales) =>
+                eliminar
+                    ? actuales.filter((actual) => actual.id !== mensaje.id)
+                    : actuales.map((actual) =>
+                          actual.id === mensaje.id
+                              ? { ...actual, estado: 'ATENDIDO' }
+                              : actual,
+                      ),
+            );
+        } catch (error) {
+            setError(mensajeError(error));
+        } finally {
+            setOcupado(false);
+        }
+    }
+
+    return (
+        <main className="container panel-perfil">
+            <Link to="/perfil/administrador" className="btn btn-volver-tienda mb-4">
+                ← Volver a mi perfil
+            </Link>
+            <h1>Mensajes de contacto</h1>
+            <EstadoApi cargando={cargando} error={error} />
+            {!cargando && !error && mensajes.length === 0 && (
+                <p>No hay mensajes registrados.</p>
+            )}
+            {mensajes.map((mensaje) => (
+                <article className="perfil-tarjeta mb-3" key={mensaje.id}>
+                    <h2>{mensaje.asunto}</h2>
+                    <p>
+                        {mensaje.nombreCompleto} · {mensaje.correo} · {mensaje.telefono}
+                    </p>
+                    <p>{mensaje.mensaje}</p>
+                    <p>{mensaje.estado}</p>
+                    {mensaje.estado === 'PENDIENTE' && (
+                        <button
+                            className="btn btn-tienda me-2"
+                            disabled={ocupado}
+                            onClick={() => cambiar(mensaje, false)}
+                        >
+                            Marcar atendido
+                        </button>
+                    )}
+                    <button
+                        className="btn btn-outline-danger"
+                        disabled={ocupado}
+                        onClick={() => cambiar(mensaje, true)}
+                    >
+                        Eliminar
+                    </button>
+                </article>
+            ))}
+        </main>
     );
 }

@@ -1,3 +1,4 @@
+import { rutasPerfil } from '../../servicios/rutas';
 
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
@@ -8,16 +9,13 @@ export type RolUsuario =
     | 'administrador';
 
 export interface SesionUsuario {
+    id?: number;
     nombre: string;
     correo: string;
     rol: RolUsuario;
 }
 
-const rutasPerfil = {
-    cliente: '/perfil/cliente',
-    veterinario: '/perfil/veterinario',
-    administrador: '/perfil/administrador',
-};
+
 
 interface PerfilProtegidoProps {
     sesion: SesionUsuario | null;
@@ -51,4 +49,4 @@ export default function PerfilProtegido({
     return <>{children(sesion)}</>;
 }
 
-export { rutasPerfil };
+

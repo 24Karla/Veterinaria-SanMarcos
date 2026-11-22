@@ -1,25 +1,30 @@
+import { rutasPerfil } from './servicios/rutas';
+import ContenidoAdministrador from './paginas/ContenidoAdministrador';
+import ClinicaAdministrador from './paginas/ClinicaAdministrador';
+import { obtenerSesion } from './servicios/api';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 
 import Footer from './componentes/organismos/Footer';
 import Navbar from './componentes/organismos/Navbar';
 
 import PerfilProtegido, {
-  rutasPerfil,
-  type SesionUsuario,
+    type SesionUsuario,
 } from './componentes/organismos/PerfilProtegido';
 
 import {
-  CitasAdministrador,
-  UsuariosAdministrador,
-  VentasAdministrador,
+    CitasAdministrador,
+    MensajesAdministrador,
+    UsuariosAdministrador,
+    VentasAdministrador,
 } from './paginas/GestionAdministrador';
 
 import {
-  AgendaVeterinario,
-  HistorialVeterinario,
-  RecetasVeterinario,
+    AgendaVeterinario,
+    DetalleConsulta,
+    HistorialVeterinario,
+    RecetasVeterinario,
 } from './paginas/GestionVeterinario';
 
 import HistorialCliente from './paginas/HistorialCliente';
@@ -40,24 +45,25 @@ import Equipo from './paginas/Equipo';
 
 function App() {
     const [sesion, setSesion] = useState<SesionUsuario | null>(() => {
-        try {
-            const guardada = localStorage.getItem('sesion-veterinaria');
-
-            return guardada
-                ? JSON.parse(guardada)
-                : null;
-        } catch {
-            return null;
-        }
+        return obtenerSesion();
     });
+
+    useEffect(() => {
+        function actualizarSesion() {
+            setSesion(obtenerSesion());
+        }
+        window.addEventListener('sesion-actualizada', actualizarSesion);
+        window.addEventListener('storage', actualizarSesion);
+        return () => {
+            window.removeEventListener('sesion-actualizada', actualizarSesion);
+            window.removeEventListener('storage', actualizarSesion);
+        };
+    }, []);
 
     function iniciarSesion(nuevaSesion: SesionUsuario) {
         setSesion(nuevaSesion);
 
-        localStorage.setItem(
-            'sesion-veterinaria',
-            JSON.stringify(nuevaSesion)
-        );
+        localStorage.setItem('sesion-veterinaria', JSON.stringify(nuevaSesion));
     }
 
     function cerrarSesion() {
@@ -74,52 +80,67 @@ function App() {
                 backgroundColor: '#f5f0e8',
             }}
         >
-            <Navbar
-                sesion={sesion}
-                onCerrarSesion={cerrarSesion}
-            />
+            <Navbar sesion={sesion} onCerrarSesion={cerrarSesion} />
 
             <div className="flex-grow-1">
                 <Routes>
+                    <Route
+                        path="/perfil/administrador/mensajes"
+                        element={
+                            <PerfilProtegido sesion={sesion} rol="administrador">
+                                {() => <MensajesAdministrador />}
+                            </PerfilProtegido>
+                        }
+                    />
+                    <Route
+                        path="/perfil/administrador/contenido"
+                        element={
+                            <PerfilProtegido sesion={sesion} rol="administrador">
+                                {() => <ContenidoAdministrador />}
+                            </PerfilProtegido>
+                        }
+                    />
+                    <Route
+                        path="/perfil/administrador/clinica"
+                        element={
+                            <PerfilProtegido sesion={sesion} rol="administrador">
+                                {() => <ClinicaAdministrador />}
+                            </PerfilProtegido>
+                        }
+                    />
+                    <Route
+                        path="/perfil/veterinario/consultas/:id"
+                        element={
+                            <PerfilProtegido sesion={sesion} rol="veterinario">
+                                {() => <DetalleConsulta />}
+                            </PerfilProtegido>
+                        }
+                    />
 
                     {/* Rutas principales */}
 
-                    <Route
-                        path="/"
-                        element={<Inicio />}
-                    />
+                    <Route path="/" element={<Inicio />} />
 
                     <Route
                         path="/login"
                         element={
                             sesion ? (
-                                <Navigate
-                                    to={rutasPerfil[sesion.rol]}
-                                    replace
-                                />
+                                <Navigate to={rutasPerfil[sesion.rol]} replace />
                             ) : (
                                 <Login onLogin={iniciarSesion} />
                             )
                         }
                     />
 
-                    <Route
-                        path="/tienda/*"
-                        element={<Tienda />}
-                    />
+                    <Route path="/tienda/*" element={<Tienda />} />
 
                     {/* Rutas del cliente */}
 
                     <Route
                         path="/perfil/cliente"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="cliente"
-                            >
-                                {(usuario) => (
-                                    <PerfilCliente sesion={usuario} />
-                                )}
+                            <PerfilProtegido sesion={sesion} rol="cliente">
+                                {(usuario) => <PerfilCliente sesion={usuario} />}
                             </PerfilProtegido>
                         }
                     />
@@ -127,10 +148,7 @@ function App() {
                     <Route
                         path="/perfil/cliente/citas"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="cliente"
-                            >
+                            <PerfilProtegido sesion={sesion} rol="cliente">
                                 {() => <MisCitas />}
                             </PerfilProtegido>
                         }
@@ -139,10 +157,7 @@ function App() {
                     <Route
                         path="/perfil/cliente/historial"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="cliente"
-                            >
+                            <PerfilProtegido sesion={sesion} rol="cliente">
                                 {() => <HistorialCliente />}
                             </PerfilProtegido>
                         }
@@ -151,10 +166,7 @@ function App() {
                     <Route
                         path="/perfil/cliente/compras"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="cliente"
-                            >
+                            <PerfilProtegido sesion={sesion} rol="cliente">
                                 {() => <HistorialCompras />}
                             </PerfilProtegido>
                         }
@@ -165,13 +177,8 @@ function App() {
                     <Route
                         path="/perfil/veterinario"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="veterinario"
-                            >
-                                {(usuario) => (
-                                    <PerfilVeterinario sesion={usuario} />
-                                )}
+                            <PerfilProtegido sesion={sesion} rol="veterinario">
+                                {(usuario) => <PerfilVeterinario sesion={usuario} />}
                             </PerfilProtegido>
                         }
                     />
@@ -179,10 +186,7 @@ function App() {
                     <Route
                         path="/perfil/veterinario/agenda"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="veterinario"
-                            >
+                            <PerfilProtegido sesion={sesion} rol="veterinario">
                                 {() => <AgendaVeterinario />}
                             </PerfilProtegido>
                         }
@@ -191,10 +195,7 @@ function App() {
                     <Route
                         path="/perfil/veterinario/recetas"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="veterinario"
-                            >
+                            <PerfilProtegido sesion={sesion} rol="veterinario">
                                 {() => <RecetasVeterinario />}
                             </PerfilProtegido>
                         }
@@ -203,10 +204,7 @@ function App() {
                     <Route
                         path="/perfil/veterinario/historial"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="veterinario"
-                            >
+                            <PerfilProtegido sesion={sesion} rol="veterinario">
                                 {() => <HistorialVeterinario />}
                             </PerfilProtegido>
                         }
@@ -217,13 +215,8 @@ function App() {
                     <Route
                         path="/perfil/administrador"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="administrador"
-                            >
-                                {(usuario) => (
-                                    <PerfilAdministrador sesion={usuario} />
-                                )}
+                            <PerfilProtegido sesion={sesion} rol="administrador">
+                                {(usuario) => <PerfilAdministrador sesion={usuario} />}
                             </PerfilProtegido>
                         }
                     />
@@ -231,10 +224,7 @@ function App() {
                     <Route
                         path="/perfil/administrador/productos"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="administrador"
-                            >
+                            <PerfilProtegido sesion={sesion} rol="administrador">
                                 {() => <ProductosInventario />}
                             </PerfilProtegido>
                         }
@@ -243,10 +233,7 @@ function App() {
                     <Route
                         path="/perfil/administrador/citas"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="administrador"
-                            >
+                            <PerfilProtegido sesion={sesion} rol="administrador">
                                 {() => <CitasAdministrador />}
                             </PerfilProtegido>
                         }
@@ -255,10 +242,7 @@ function App() {
                     <Route
                         path="/perfil/administrador/ventas"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="administrador"
-                            >
+                            <PerfilProtegido sesion={sesion} rol="administrador">
                                 {() => <VentasAdministrador />}
                             </PerfilProtegido>
                         }
@@ -267,31 +251,15 @@ function App() {
                     <Route
                         path="/perfil/administrador/usuarios"
                         element={
-                            <PerfilProtegido
-                                sesion={sesion}
-                                rol="administrador"
-                            >
+                            <PerfilProtegido sesion={sesion} rol="administrador">
                                 {() => <UsuariosAdministrador />}
                             </PerfilProtegido>
                         }
                     />
-                  <Route 
-                    path="/servicios" 
-                    element={<Servicios />} 
-                    />
-                  <Route 
-                    path="/contacto" 
-                    element={<Contacto />} 
-                    />
-                  <Route 
-                    path="/blog" 
-                    element={<Blog />} 
-                    />
-                  <Route 
-                    path="/equipo" 
-                    element={<Equipo />} 
-                    />
-
+                    <Route path="/servicios" element={<Servicios />} />
+                    <Route path="/contacto" element={<Contacto />} />
+                    <Route path="/blog" element={<Blog />} />
+                    <Route path="/equipo" element={<Equipo />} />
                 </Routes>
             </div>
 

@@ -1,23 +1,15 @@
-// @vitest-environment jsdom
-
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { expect, test, vi } from 'vitest';
 import ProductosInventario from '../paginas/ProductosInventario';
 
-test('muestra una alerta si falta información al agregar un producto', () => {
-    const alerta = vi.spyOn(window, 'alert').mockImplementation(() => {});
-    localStorage.clear();
-
-    render(
-        <MemoryRouter>
-            <ProductosInventario />
-        </MemoryRouter>
-    );
-
+test('muestra el error y no guarda un producto sin datos', async () => {
+    const fetchSimulado = vi.fn().mockResolvedValue(new Response('[]', { status: 200 }));
+    vi.stubGlobal('fetch', fetchSimulado);
+    render(<MemoryRouter><ProductosInventario /></MemoryRouter>);
+    await screen.findByText('No hay productos registrados.');
     fireEvent.click(screen.getByRole('button', { name: 'Agregar producto' }));
     fireEvent.click(screen.getByRole('button', { name: 'Guardar producto' }));
-
-    expect(alerta).toHaveBeenCalledWith('Completa nombre, categoría, precio y stock.');
-    alerta.mockRestore();
+    expect(screen.getByRole('alert').textContent).toContain('Completa código');
+    expect(fetchSimulado).toHaveBeenCalledTimes(1);
 });

@@ -1,73 +1,76 @@
-
-import { useState, type SubmitEvent } from 'react';
+import { useState, type FormEvent } from 'react';
 import CampoSesion from '../moleculas/CampoSesion';
+import type { SesionUsuario } from './PerfilProtegido';
+import { api, pedirDatos, mensajeError } from '../../servicios/api';
 
-interface FormularioSesionProps {
-    onLogin: (sesion: {
-        nombre: string;
-        correo: string;
-        rol: 'cliente' | 'veterinario' | 'administrador';
-    }) => void;
+interface Props {
+    onLogin: (sesion: SesionUsuario) => void;
 }
 
-function FormularioSesion({ onLogin }: FormularioSesionProps) {
+export default function FormularioSesion({ onLogin }: Props) {
     const [correo, setCorreo] = useState('');
     const [contrasena, setContrasena] = useState('');
-    const [recordar, setRecordar] = useState(false);
+    const [nombre, setNombre] = useState('');
+    const [registrando, setRegistrando] = useState(false);
+    const [enviando, setEnviando] = useState(false);
+    const [error, setError] = useState('');
 
-    const manejarEnvio = (e: SubmitEvent<HTMLFormElement>) => {
-        e.preventDefault();
+    async function manejarEnvio(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        if (enviando) return;
 
-        if (correo.trim() === '') {
-            alert('Debe ingresar su correo.');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim()) || !contrasena.trim()) {
+            setError('Ingresa un correo válido y tu contraseña.');
+            return;
+        }
+        if (registrando && !nombre.trim()) {
+            setError('Ingresa tu nombre.');
             return;
         }
 
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
-            alert('Ingresa un correo válido.');
-            return;
-        }
-
-        if (contrasena.trim() === '') {
-            alert('Debe ingresar una contraseña.');
-            return;
-        }
-
-        const cuentas = {
-            'sofia@gmail.com': {
-                nombre: 'Sofía',
-                rol: 'cliente' as const,
-            },
-            'fabian@vetsanmarcos.cl': {
-                nombre: 'Fabián',
-                rol: 'veterinario' as const,
-            },
-            'admin@vetsanmarcos.cl': {
-                nombre: 'Administrador',
-                rol: 'administrador' as const,
-            },
-        };
-
-        const cuenta =
-            cuentas[correo.trim().toLowerCase() as keyof typeof cuentas];
-
-        if (!cuenta || contrasena !== '1234') {
-            alert(
-                'El correo o la contraseña no corresponden a una cuenta de prueba.'
+        setError('');
+        setEnviando(true);
+        try {
+            if (registrando) {
+                await pedirDatos(`${api.usuarios}/registro/cliente`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        nombre: nombre.trim(),
+                        email: correo.trim(),
+                        password: contrasena,
+                        rol: 'CLIENTE',
+                    }),
+                });
+            }
+            const sesion = await pedirDatos<SesionUsuario>(
+                `${api.usuarios}/registro/login`,
+                {
+                    method: 'POST',
+                    body: JSON.stringify({ correo: correo.trim(), password: contrasena }),
+                },
             );
-            return;
+            onLogin(sesion);
+        } catch (error) {
+            setError(mensajeError(error));
+        } finally {
+            setEnviando(false);
         }
-
-        onLogin({
-            nombre: cuenta.nombre,
-            correo: correo.trim().toLowerCase(),
-            rol: cuenta.rol,
-        });
-    };
+    }
 
     return (
         <form onSubmit={manejarEnvio} noValidate>
-
+            <h2 className="titulo-login mb-4">
+                {registrando ? 'Crear cuenta' : 'Ingresar'}
+            </h2>
+            {registrando && (
+                <CampoSesion
+                    etiqueta="Nombre"
+                    tipo="text"
+                    nombre="nombre"
+                    valor={nombre}
+                    alCambiar={setNombre}
+                />
+            )}
             <CampoSesion
                 etiqueta="Correo electrónico"
                 tipo="email"
@@ -75,7 +78,6 @@ function FormularioSesion({ onLogin }: FormularioSesionProps) {
                 valor={correo}
                 alCambiar={setCorreo}
             />
-
             <CampoSesion
                 etiqueta="Contraseña"
                 tipo="password"
@@ -83,59 +85,28 @@ function FormularioSesion({ onLogin }: FormularioSesionProps) {
                 valor={contrasena}
                 alCambiar={setContrasena}
             />
-
-            <section
-                className="cuentas-prueba"
-                aria-label="Cuentas de prueba"
-            >
-                <h3>Ingresa con una de estas cuentas</h3>
-
-                <p>
-                    <strong>Cliente:</strong> sofia@gmail.com
-                    <span> · Clave: 1234</span>
+            {error && (
+                <p role="alert" className="alert alert-danger">
+                    {error}
                 </p>
-
-                <p>
-                    <strong>Veterinario:</strong> fabian@vetsanmarcos.cl
-                    <span> · Clave: 1234</span>
-                </p>
-
-                <p>
-                    <strong>Administrador:</strong> admin@vetsanmarcos.cl
-                    <span> · Clave: 1234</span>
-                </p>
-            </section>
-
-            <div className="form-check mb-3">
-                <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="mantenerCuenta"
-                    checked={recordar}
-                    onChange={(e) => setRecordar(e.target.checked)}
-                    style={{
-                        backgroundColor: recordar ? '#e8c746' : '#fff',
-                        borderColor: recordar ? '#e8c746' : '#ced4da',
-                    }}
-                />
-
-                <label
-                    className="form-check-label"
-                    htmlFor="mantenerCuenta"
-                >
-                    Recordar cuenta
-                </label>
-            </div>
-
-            <button
-                type="submit"
-                className="btn btn-tienda w-100"
-            >
-                Ingresar
+            )}
+            <button type="submit" className="btn btn-tienda w-100" disabled={enviando}>
+                {enviando ? 'Conectando…' : registrando ? 'Crear cuenta' : 'Ingresar'}
             </button>
-
+            <div className="sesion-alternativa">
+                <span>o</span>
+                <button
+                    type="button"
+                    className="sesion-cambiar-modo"
+                    disabled={enviando}
+                    onClick={() => {
+                        setRegistrando(!registrando);
+                        setError('');
+                    }}
+                >
+                    {registrando ? 'Ingresar' : 'Crear cuenta'}
+                </button>
+            </div>
         </form>
     );
 }
-
-export default FormularioSesion;

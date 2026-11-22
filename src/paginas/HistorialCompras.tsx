@@ -1,179 +1,108 @@
-
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-interface Compra {
-    id: number;
-    fecha: string;
-    productos: { nombre: string; cantidad: number }[];
-    total: number;
-    estado: string;
-}
+import EstadoApi from '../componentes/moleculas/EstadoApi';
+import {
+    api,
+    pedirDatos,
+    mensajeError,
+    obtenerSesion,
+    type PedidoApi,
+} from '../servicios/api';
 
 export default function HistorialCompras() {
-    const [pedidoAbierto, setPedidoAbierto] = useState('');
-    const [compras] = useState<Compra[]>(() => {
-        try {
-            const guardadas = localStorage.getItem('compras-cliente');
-            return guardadas ? JSON.parse(guardadas) : [];
-        } catch {
-            return [];
-        }
-    });
+    const correo = obtenerSesion()?.correo;
+    const [compras, setCompras] = useState<PedidoApi[]>([]);
+    const [cargando, setCargando] = useState(true);
+    const [error, setError] = useState('');
+    const [ocupado, setOcupado] = useState(false);
 
-    const formatoPrecio = (precio: number) =>
-        new Intl.NumberFormat('es-CL', {
-            style: 'currency',
-            currency: 'CLP',
-            maximumFractionDigits: 0,
-        }).format(precio);
+    useEffect(() => {
+        if (!correo) return;
+        pedirDatos<PedidoApi[]>(
+            `${api.pedidos}/api/pedidos?correo=${encodeURIComponent(correo)}`,
+        )
+            .then(setCompras)
+            .catch((error) => setError(mensajeError(error)))
+            .finally(() => setCargando(false));
+    }, [correo]);
+
+    async function cambiar(pedido: PedidoApi, cancelar: boolean) {
+        if (ocupado) return;
+        setOcupado(true);
+        setError('');
+        try {
+            const actualizado = await pedirDatos<PedidoApi>(
+                `${api.pedidos}/api/pedidos/${pedido.id}/${cancelar ? 'estado' : 'confirmar'}`,
+                cancelar
+                    ? { method: 'PATCH', body: JSON.stringify({ estado: 'CANCELADO' }) }
+                    : { method: 'POST' },
+            );
+            setCompras((actuales) =>
+                actuales.map((actual) =>
+                    actual.id === pedido.id ? actualizado : actual,
+                ),
+            );
+        } catch (error) {
+            setError(mensajeError(error));
+        } finally {
+            setOcupado(false);
+        }
+    }
 
     return (
         <main className="container panel-perfil">
-
-            <Link
-                to="/perfil/cliente"
-                className="btn btn-volver-tienda mb-4"
-            >
+            <Link to="/perfil/cliente" className="btn btn-volver-tienda mb-4">
                 ← Volver a mi perfil
             </Link>
-
-            <header className="perfil-encabezado">
-                <span className="perfil-etiqueta">
-                    PORTAL CLIENTE
-                </span>
-
-                <h1>Historial de compras</h1>
-
-                <p>
-                    Revisa los pedidos que has realizado en la tienda.
-                </p>
-            </header>
-
+            <h1>Historial de compras</h1>
+            <EstadoApi cargando={cargando} error={error} />
+            {!cargando && !error && compras.length === 0 && (
+                <p>No tienes pedidos registrados.</p>
+            )}
             <section className="lista-registros">
-
-                {compras.map((compra) => {
-                    const identificador = String(compra.id);
-                    const productos = compra.productos
-                        .map((producto) => `${producto.nombre} x${producto.cantidad}`)
-                        .join(', ');
-
-                    return (
-                        <article className="registro-cita" key={compra.id}>
-                            <img
-                                className="registro-imagen"
-                                src="/img/historialcompra.png"
-                                alt="Historial de compra"
-                            />
-
-                            <div>
-                                <h2>Pedido #{compra.id} · {compra.fecha}</h2>
-                                <p>{productos} · Total: {formatoPrecio(compra.total)} · {compra.estado}.</p>
-                            </div>
-
+                {compras.map((pedido) => (
+                    <article className="perfil-tarjeta" key={pedido.id}>
+                        <h2>Pedido #{pedido.id}</h2>
+                        <p>
+                            {new Date(pedido.fecha).toLocaleString('es-CL')} ·{' '}
+                            {pedido.estado}
+                        </p>
+                        <p>
+                            Total: ${pedido.total.toLocaleString('es-CL')} ·{' '}
+                            {pedido.metodo}
+                        </p>
+                        <details>
+                            <summary>Ver detalle</summary>
+                            <p>Despacho: {pedido.direccion}</p>
+                            {pedido.productos.map((producto) => (
+                                <p key={producto.codigo}>
+                                    {producto.nombre} × {producto.cantidad}: $
+                                    {producto.subtotal.toLocaleString('es-CL')}
+                                </p>
+                            ))}
+                        </details>
+                        {pedido.estado === 'PENDIENTE' && (
                             <button
-                                type="button"
-                                className="btn btn-volver-tienda"
-                                onClick={() => setPedidoAbierto(pedidoAbierto === identificador ? '' : identificador)}
+                                className="btn btn-tienda mt-2 me-2"
+                                disabled={ocupado}
+                                onClick={() => cambiar(pedido, false)}
                             >
-                                {pedidoAbierto === identificador ? 'Ocultar detalle' : 'Ver detalle'}
+                                Reintentar confirmación
                             </button>
-
-                            {pedidoAbierto === identificador && (
-                                <div className="registro-detalle">
-                                    <strong>Productos: {productos}</strong>
-                                    <span>Total pagado: {formatoPrecio(compra.total)} · Estado: {compra.estado}</span>
-                                </div>
-                            )}
-                        </article>
-                    );
-                })}
-
-                <article className="registro-cita">
-                    <img
-                        className="registro-imagen"
-                        src="/img/historialcompra.png"
-                        alt="Historial de compra"
-                    />
-
-                    <div>
-                        <h2>Pedido #1024 · 20 de octubre de 2026</h2>
-
-                        <p>
-                            Amoxibay 250 mg y Enrox 50 mg ·
-                            Total: $11.000 · Entregado.
-                        </p>
-                    </div>
-
-                    <button
-                        type="button"
-                        className="btn btn-volver-tienda"
-                        onClick={() =>
-                            setPedidoAbierto(
-                                pedidoAbierto === '1024' ? '' : '1024'
-                            )
-                        }
-                    >
-                        {pedidoAbierto === '1024'
-                            ? 'Ocultar detalle'
-                            : 'Ver detalle'}
-                    </button>
-
-                    {pedidoAbierto === '1024' && (
-                        <div className="registro-detalle">
-                            <strong>
-                                Productos: Amoxibay 250 mg y Enrox 50 mg
-                            </strong>
-
-                            <span>
-                                Total pagado: $11.000 · Estado: Entregado
-                            </span>
-                        </div>
-                    )}
-                </article>
-
-                <article className="registro-cita">
-                    <img
-                        className="registro-imagen"
-                        src="/img/historialcompra.png"
-                        alt="Historial de compra"
-                    />
-
-                    <div>
-                        <h2>Pedido #1008 · 5 de octubre de 2026</h2>
-
-                        <p>
-                            Nexgard · Total: $9.500 · Entregado.
-                        </p>
-                    </div>
-
-                    <button
-                        type="button"
-                        className="btn btn-volver-tienda"
-                        onClick={() =>
-                            setPedidoAbierto(
-                                pedidoAbierto === '1008' ? '' : '1008'
-                            )
-                        }
-                    >
-                        {pedidoAbierto === '1008'
-                            ? 'Ocultar detalle'
-                            : 'Ver detalle'}
-                    </button>
-
-                    {pedidoAbierto === '1008' && (
-                        <div className="registro-detalle">
-                            <strong>
-                                Producto: Nexgard
-                            </strong>
-
-                            <span>
-                                Total pagado: $9.500 · Estado: Entregado
-                            </span>
-                        </div>
-                    )}
-                </article>
-
+                        )}
+                        {['PENDIENTE', 'CONFIRMADO', 'CANCELACION_PENDIENTE'].includes(
+                            pedido.estado,
+                        ) && (
+                            <button
+                                className="btn btn-outline-danger mt-2"
+                                disabled={ocupado}
+                                onClick={() => cambiar(pedido, true)}
+                            >
+                                Cancelar pedido
+                            </button>
+                        )}
+                    </article>
+                ))}
             </section>
         </main>
     );
