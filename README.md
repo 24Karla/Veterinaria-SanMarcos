@@ -1,12 +1,12 @@
 # Veterinaria San Marcos
 
-## Conectar Contacto con el backend
+## Conectar el frontend con el backend
 
-1. En el repositorio `Veterinaria-SanMarcos-Backend`, prepara la base de MySQL y arranca `mensajeria-service` según su README. Por defecto escucha en `http://127.0.0.1:8082`.
+1. En el repositorio `Veterinaria-SanMarcos-Backend`, prepara MySQL y arranca Eureka, los microservicios y el API Gateway según su README. React envía las peticiones al gateway en `http://localhost:8080`.
 2. En este repositorio, ejecuta `npm ci` si faltan las dependencias. Inicia Vite con `npm run dev -- --port 5173 --strictPort`.
-3. Abre `http://localhost:5173/contacto` y envía un mensaje de prueba. La confirmación aparece después de que la API acepta el envío. Puedes comprobar el registro con `GET http://127.0.0.1:8082/api/contactos` en Postman.
+3. Abre `http://localhost:5173/contacto` y envía un mensaje de prueba. Puedes comprobar el registro en Postman con `GET http://localhost:8080/mensajeria/api/contactos`.
 
-El backend permite los orígenes locales del frontend en el puerto 5173. Si solo cambia la URL de mensajería, puedes definir `VITE_CONTACTOS_URL` en `.env.local` con la URL completa del endpoint y reiniciar Vite.
+El gateway admite las peticiones desde el puerto 5173. Si cambia de dirección, define `VITE_API_GATEWAY_URL` en `.env.local` y reinicia Vite. La variable `VITE_CONTACTOS_URL` permite configurar una URL completa para el formulario de contacto.
 
 Proyecto frontend desarrollado con React y Vite para una veterinaria. Permite revisar productos, agregarlos al carrito, reservar citas e iniciar sesión según el tipo de usuario.
 

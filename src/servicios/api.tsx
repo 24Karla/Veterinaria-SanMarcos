@@ -1,16 +1,18 @@
 import type { SesionUsuario } from '../componentes/organismos/PerfilProtegido';
 
-// Cada dirección se puede cambiar en .env.local sin editar las pantallas.
+const gateway = (import.meta.env.VITE_API_GATEWAY_URL || 'http://localhost:8080').replace(/\/+$/, '');
+
+// Se pueden configurar direcciones individuales en .env.local.
 export const api = {
-    usuarios: import.meta.env.VITE_USUARIOS_URL || 'http://127.0.0.1:8081',
-    mensajeria: import.meta.env.VITE_MENSAJERIA_URL || 'http://127.0.0.1:8082',
-    mascotas: import.meta.env.VITE_MASCOTAS_URL || 'http://127.0.0.1:8083',
-    catalogo: import.meta.env.VITE_CATALOGO_URL || 'http://127.0.0.1:8084',
-    ficha: import.meta.env.VITE_FICHA_URL || 'http://127.0.0.1:8085',
-    productos: import.meta.env.VITE_PRODUCTOS_URL || 'http://127.0.0.1:8086',
-    pedidos: import.meta.env.VITE_PEDIDOS_URL || 'http://127.0.0.1:8087',
-    agenda: import.meta.env.VITE_AGENDA_URL || 'http://127.0.0.1:8088',
-    compras: import.meta.env.VITE_COMPRAS_URL || 'http://127.0.0.1:8089',
+    usuarios: import.meta.env.VITE_USUARIOS_URL || `${gateway}/usuarios`,
+    mensajeria: import.meta.env.VITE_MENSAJERIA_URL || `${gateway}/mensajeria`,
+    mascotas: import.meta.env.VITE_MASCOTAS_URL || `${gateway}/mascotas`,
+    catalogo: import.meta.env.VITE_CATALOGO_URL || `${gateway}/catalogo`,
+    ficha: import.meta.env.VITE_FICHA_URL || `${gateway}/ficha`,
+    productos: import.meta.env.VITE_PRODUCTOS_URL || `${gateway}/productos`,
+    pedidos: import.meta.env.VITE_PEDIDOS_URL || `${gateway}/pedidos`,
+    agenda: import.meta.env.VITE_AGENDA_URL || `${gateway}/agenda`,
+    compras: import.meta.env.VITE_COMPRAS_URL || `${gateway}/compras`,
 };
 
 export class ErrorApi extends Error {

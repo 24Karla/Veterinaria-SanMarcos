@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import CampoTexto from '../moleculas/CampoTexto';
 import CampoAreaTexto from '../moleculas/CampoAreaTexto';
+import { api } from '../../servicios/api';
 
-const urlContactos = import.meta.env.VITE_CONTACTOS_URL || 'http://127.0.0.1:8082/api/contactos';
+const urlContactos = import.meta.env.VITE_CONTACTOS_URL || `${api.mensajeria}/api/contactos`;
 
 function esCorreoValido(correo: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim());
