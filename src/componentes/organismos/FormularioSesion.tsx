@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import CampoSesion from '../moleculas/CampoSesion';
 import type { SesionUsuario } from './PerfilProtegido';
 import { api, mostrarErrorFormulario, pedirDatos } from '../../servicios/api';
@@ -18,10 +18,20 @@ export default function FormularioSesion({ onLogin, crearCuenta = false }: Props
     const [registrando, setRegistrando] = useState(crearCuenta);
     const [enviando, setEnviando] = useState(false);
     const [error, setError] = useState('');
+    const [cuentaCreada, setCuentaCreada] = useState(false);
+    const [sesionPendiente, setSesionPendiente] = useState<SesionUsuario | null>(null);
+    const ocupado = enviando || sesionPendiente !== null;
+
+    useEffect(() => {
+        if (!sesionPendiente) return;
+
+        const redireccion = window.setTimeout(() => onLogin(sesionPendiente), 2000);
+        return () => window.clearTimeout(redireccion);
+    }, [onLogin, sesionPendiente]);
 
     async function manejarEnvio(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (enviando) return;
+        if (ocupado) return;
 
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim()) || !contrasena.trim()) {
             alert('Ingresa un correo válido y tu contraseña.');
@@ -33,7 +43,9 @@ export default function FormularioSesion({ onLogin, crearCuenta = false }: Props
         }
 
         setError('');
+        setCuentaCreada(false);
         setEnviando(true);
+        let registroCompletado = false;
         try {
             if (registrando) {
                 await pedirDatos(`${api.usuarios}/registro/cliente`, {
@@ -45,6 +57,8 @@ export default function FormularioSesion({ onLogin, crearCuenta = false }: Props
                         rol: 'CLIENTE',
                     }),
                 });
+                registroCompletado = true;
+                setCuentaCreada(true);
             }
             const sesion = await pedirDatos<SesionUsuario>(
                 `${api.usuarios}/registro/login`,
@@ -55,8 +69,13 @@ export default function FormularioSesion({ onLogin, crearCuenta = false }: Props
             );
             if (recordar) localStorage.setItem('correo-recordado', correo.trim());
             else localStorage.removeItem('correo-recordado');
-            onLogin(sesion);
+            if (registroCompletado) {
+                setSesionPendiente(sesion);
+            } else {
+                onLogin(sesion);
+            }
         } catch (error) {
+            if (registroCompletado) setRegistrando(false);
             mostrarErrorFormulario(error, setError);
         } finally {
             setEnviando(false);
@@ -91,6 +110,11 @@ export default function FormularioSesion({ onLogin, crearCuenta = false }: Props
                 valor={contrasena}
                 alCambiar={setContrasena}
             />
+            {cuentaCreada && (
+                <p role="status" className="alert alert-success">
+                    Cuenta creada con éxito
+                </p>
+            )}
             {error && (
                 <p role="alert" className="alert alert-danger">
                     {error}
@@ -114,18 +138,19 @@ export default function FormularioSesion({ onLogin, crearCuenta = false }: Props
                     </label>
                 </div>
             )}
-            <button type="submit" className="btn btn-tienda w-100" disabled={enviando}>
-                {enviando ? 'Conectando…' : registrando ? 'Crear cuenta' : 'Ingresar'}
+            <button type="submit" className="btn btn-tienda w-100" disabled={ocupado}>
+                {sesionPendiente ? 'Abriendo tu perfil…' : enviando ? 'Conectando…' : registrando ? 'Crear cuenta' : 'Ingresar'}
             </button>
             <div className="sesion-alternativa">
                 <span>o</span>
                 <button
                     type="button"
                     className="sesion-cambiar-modo"
-                    disabled={enviando}
+                    disabled={ocupado}
                     onClick={() => {
                         setRegistrando(!registrando);
                         setError('');
+                        setCuentaCreada(false);
                     }}
                 >
                     {registrando ? 'Ingresar' : 'Crear cuenta'}
