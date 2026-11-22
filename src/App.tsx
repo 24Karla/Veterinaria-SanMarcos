@@ -3,8 +3,8 @@ import ContenidoAdministrador from './paginas/ContenidoAdministrador';
 import ClinicaAdministrador from './paginas/ClinicaAdministrador';
 import { obtenerSesion } from './servicios/api';
 
-import { useEffect, useState } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import Footer from './componentes/organismos/Footer';
 import Navbar from './componentes/organismos/Navbar';
@@ -44,6 +44,15 @@ import Blog from './paginas/Blog';
 import Equipo from './paginas/Equipo';
 
 function App() {
+    const ubicacion = useLocation();
+    const regreso = ubicacion.state?.volverA;
+    const volverAlFormulario =
+        typeof regreso === 'string' &&
+        (regreso === '/tienda?pagina=pago' ||
+            regreso === '/tienda?pagina=cita' ||
+            regreso.startsWith('/tienda?pagina=cita&'))
+            ? regreso
+            : null;
     const [sesion, setSesion] = useState<SesionUsuario | null>(() => {
         return obtenerSesion();
     });
@@ -60,6 +69,33 @@ function App() {
         };
     }, []);
 
+    function mostrarValidacion(event: FormEvent<HTMLDivElement>) {
+        event.preventDefault();
+        const campo = event.target as
+            | HTMLInputElement
+            | HTMLSelectElement
+            | HTMLTextAreaElement;
+        if (!campo.form) return;
+        const invalidos = Array.from(
+            campo.form.querySelectorAll<
+                HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+            >('input, select, textarea'),
+        ).filter((elemento) => !elemento.validity.valid);
+        if (campo !== invalidos[0]) return;
+        const mensajes = invalidos.map((elemento) => {
+            const etiqueta =
+                elemento.labels?.[0]?.textContent?.trim() ||
+                elemento.getAttribute('aria-label') ||
+                elemento.id;
+            return `${etiqueta}: ${elemento.validationMessage}`;
+        });
+        alert(
+            'Revisa los siguientes datos:\n\n' +
+                mensajes.map((mensaje) => '• ' + mensaje).join('\n'),
+        );
+        campo.focus();
+    }
+
     function iniciarSesion(nuevaSesion: SesionUsuario) {
         setSesion(nuevaSesion);
 
@@ -75,6 +111,7 @@ function App() {
     return (
         <div
             className="d-flex flex-column"
+            onInvalidCapture={mostrarValidacion}
             style={{
                 minHeight: '100vh',
                 backgroundColor: '#f5f0e8',
@@ -125,7 +162,10 @@ function App() {
                         path="/login"
                         element={
                             sesion ? (
-                                <Navigate to={rutasPerfil[sesion.rol]} replace />
+                                <Navigate
+                                    to={volverAlFormulario || rutasPerfil[sesion.rol]}
+                                    replace
+                                />
                             ) : (
                                 <Login onLogin={iniciarSesion} />
                             )

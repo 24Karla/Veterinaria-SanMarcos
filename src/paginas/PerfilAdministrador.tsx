@@ -79,33 +79,146 @@ export default function PerfilAdministrador({ sesion }: Props) {
         <main className="container panel-perfil">
             <header className="perfil-encabezado">
                 <span className="perfil-etiqueta">ADMINISTRACIÓN</span>
+
                 <h1>Resumen de la veterinaria</h1>
-                <p>Hola, {sesion.nombre}.</p>
+
+                <p>
+                    Hola, {sesion.nombre}. Gestiona las operaciones diarias de la
+                    Veterinaria San Marcos.
+                </p>
             </header>
+
             <EstadoApi cargando={cargando} error={error} />
-            {!cargando && !error && (
-                <section className="indicadores-admin">
-                    <article>
-                        <span>Citas de hoy</span>
-                        <strong>{resumen.citas}</strong>
-                    </article>
-                    <article>
-                        <span>Productos en inventario</span>
-                        <strong>{resumen.productos}</strong>
-                    </article>
-                    <article>
-                        <span>Total de pedidos confirmados hoy</span>
-                        <strong>${resumen.ventas.toLocaleString('es-CL')}</strong>
-                    </article>
-                </section>
-            )}
+
+            <section
+                className="indicadores-admin"
+                aria-label="Indicadores de la veterinaria"
+            >
+                <article>
+                    <span>Citas de hoy</span>
+                    <strong>{cargando || error ? '—' : resumen.citas}</strong>
+                    <small>Citas registradas para hoy</small>
+                </article>
+
+                <article>
+                    <span>Productos en inventario</span>
+                    <strong>{cargando || error ? '—' : resumen.productos}</strong>
+                    <small>Catálogo disponible para administración</small>
+                </article>
+
+                <article>
+                    <span>Ventas del día</span>
+                    <strong>
+                        {cargando || error
+                            ? '—'
+                            : `$${resumen.ventas.toLocaleString('es-CL')}`}
+                    </strong>
+                    <small>Total de pedidos confirmados hoy</small>
+                </article>
+            </section>
+
             <section className="perfil-grid">
-                {secciones.map(([ruta, titulo, descripcion]) => (
+                <article className="perfil-tarjeta">
+                    <div className="perfil-titulo">
+                        <h2>Productos e inventario</h2>
+                    </div>
+
+                    <div className="perfil-lista">
+                        <div>
+                            <strong>
+                                {cargando || error
+                                    ? 'Consulta los productos registrados'
+                                    : `${resumen.productos} productos registrados`}
+                            </strong>
+                            <span>Revisa categoría, imagen y stock disponible.</span>
+                        </div>
+
+                        <div>
+                            <strong>Stock disponible</strong>
+                            <span>
+                                Consulta las unidades de cada producto en el inventario.
+                            </span>
+                        </div>
+                    </div>
+
+                    <Link className="btn btn-tienda" to="/perfil/administrador/productos">
+                        Gestionar productos
+                    </Link>
+                </article>
+
+                <article className="perfil-tarjeta">
+                    <div className="perfil-titulo">
+                        <h2>Flujo de citas</h2>
+                    </div>
+
+                    <div className="perfil-lista">
+                        <div>
+                            <strong>
+                                {cargando || error
+                                    ? 'Consulta las citas de hoy'
+                                    : `${resumen.citas} citas para hoy`}
+                            </strong>
+                            <span>Revisa las reservas y sus estados.</span>
+                        </div>
+
+                        <div>
+                            <strong>Horarios de atención</strong>
+                            <span>Consulta los horarios disponibles de la agenda.</span>
+                        </div>
+                    </div>
+
+                    <Link
+                        className="btn btn-volver-tienda"
+                        to="/perfil/administrador/citas"
+                    >
+                        Administrar agenda
+                    </Link>
+                </article>
+
+                <article className="perfil-tarjeta">
+                    <div className="perfil-titulo">
+                        <h2>Pedidos y ventas</h2>
+                    </div>
+
+                    <p className="perfil-texto">
+                        Consulta pagos recibidos, pedidos en preparación y el historial de
+                        ventas.
+                    </p>
+
+                    <Link
+                        className="btn btn-volver-tienda"
+                        to="/perfil/administrador/ventas"
+                    >
+                        Ver ventas
+                    </Link>
+                </article>
+
+                <article className="perfil-tarjeta">
+                    <div className="perfil-titulo">
+                        <h2>Equipo y clientes</h2>
+                    </div>
+
+                    <p className="perfil-texto">
+                        Administra usuarios, permisos y fichas de clientes de la
+                        veterinaria.
+                    </p>
+
+                    <Link
+                        className="btn btn-volver-tienda"
+                        to="/perfil/administrador/usuarios"
+                    >
+                        Gestionar usuarios
+                    </Link>
+                </article>
+
+                {secciones.slice(4).map(([ruta, titulo, descripcion]) => (
                     <article className="perfil-tarjeta" key={ruta}>
-                        <h2>{titulo}</h2>
-                        <p>{descripcion}</p>
+                        <div className="perfil-titulo">
+                            <h2>{titulo}</h2>
+                        </div>
+                        <p className="perfil-texto">{descripcion}</p>
                         <Link
-                            className="btn btn-tienda"
+                            className="btn btn-volver-tienda"
                             to={`/perfil/administrador/${ruta}`}
                         >
                             Abrir {titulo.toLowerCase()}

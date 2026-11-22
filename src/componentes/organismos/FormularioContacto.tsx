@@ -58,7 +58,7 @@ export default function FormularioContacto() {
       });
 
       if (respuesta.status === 400) {
-        setErrorEnvio('Revisa el formato y la longitud de los datos antes de volver a enviar.');
+        alert('Revisa el formato y la longitud de los datos antes de volver a enviar.');
         return;
       }
       if (!respuesta.ok) {

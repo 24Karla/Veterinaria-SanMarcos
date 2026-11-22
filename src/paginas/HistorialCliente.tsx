@@ -28,45 +28,55 @@ export default function HistorialCliente() {
             <Link to="/perfil/cliente" className="btn btn-volver-tienda mb-4">
                 ← Volver a mi perfil
             </Link>
-            <h1>Historial veterinario</h1>
+            <header className="perfil-encabezado">
+                <span className="perfil-etiqueta">PORTAL CLIENTE</span>
+
+                <h1>Historial veterinario</h1>
+
+                <p>Consulta las atenciones, vacunas y tratamientos de tus mascotas.</p>
+            </header>
             <EstadoApi cargando={cargando} error={error} />
             {!cargando && !error && fichas.length === 0 && (
                 <p>Aún no hay fichas clínicas registradas para tus mascotas.</p>
             )}
-            <section className="perfil-grid">
+            <section className="historial-mascotas">
                 {fichas.map((ficha) => (
                     <article className="perfil-tarjeta" key={ficha.id}>
-                        <h2>
-                            {ficha.nombre} · {ficha.especie}
-                        </h2>
+                        <div className="perfil-titulo">
+                            <h2>
+                                {ficha.nombre} · {ficha.raza || ficha.especie}
+                            </h2>
+                        </div>
                         {!ficha.historialConsultas?.length && (
                             <p>Sin consultas registradas.</p>
                         )}
-                        {ficha.historialConsultas?.map((consulta) => (
-                            <details className="mb-3" key={consulta.id}>
-                                <summary>
-                                    {new Date(consulta.fechaConsulta).toLocaleDateString(
-                                        'es-CL',
-                                    )}{' '}
-                                    · {consulta.tipoServicio}
-                                </summary>
-                                <p>Veterinario: {consulta.nombreVeterinario}</p>
-                                <p>Motivo: {consulta.motivoConsulta}</p>
-                                <p>Diagnóstico: {consulta.diagnostico}</p>
-                                <p>
-                                    Medicamentos:{' '}
-                                    {consulta.medicamentosRecetados || 'Sin receta'}
-                                </p>
-                                <p>
-                                    Indicaciones:{' '}
-                                    {consulta.indicaciones ||
-                                        'Sin indicaciones adicionales'}
-                                </p>
-                                {consulta.proximoControl && (
-                                    <p>Próximo control: {consulta.proximoControl}</p>
-                                )}
-                            </details>
-                        ))}
+                        <div className="perfil-lista">
+                            {ficha.historialConsultas?.map((consulta) => (
+                                <div key={consulta.id}>
+                                    <strong>
+                                        {new Date(
+                                            consulta.fechaConsulta,
+                                        ).toLocaleDateString('es-CL')}{' '}
+                                        · {consulta.tipoServicio}
+                                    </strong>
+                                    <span>Veterinario: {consulta.nombreVeterinario}</span>
+                                    <p>Motivo: {consulta.motivoConsulta}</p>
+                                    <p>Diagnóstico: {consulta.diagnostico}</p>
+                                    <p>
+                                        Medicamentos:{' '}
+                                        {consulta.medicamentosRecetados || 'Sin receta'}
+                                    </p>
+                                    <p>
+                                        Indicaciones:{' '}
+                                        {consulta.indicaciones ||
+                                            'Sin indicaciones adicionales'}
+                                    </p>
+                                    {consulta.proximoControl && (
+                                        <p>Próximo control: {consulta.proximoControl}</p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </article>
                 ))}
             </section>

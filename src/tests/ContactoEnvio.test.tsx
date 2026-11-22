@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
 import Contacto from '../paginas/Contacto';
 
@@ -53,12 +53,13 @@ test('envía el contacto y espera al servidor antes de confirmar', async () => {
 });
 
 test('conserva el mensaje si el servidor rechaza el envío', async () => {
+  const alerta = vi.spyOn(window, 'alert').mockImplementation(() => {});
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 400 })));
   rellenarContacto();
 
   fireEvent.click(screen.getByRole('button', { name: 'Enviar Mensaje' }));
 
-  expect((await screen.findByRole('alert')).textContent).toContain('Revisa el formato');
+  await waitFor(() => expect(alerta).toHaveBeenCalledWith(expect.stringContaining('Revisa el formato')));
   expect(screen.queryByText('¡Mensaje enviado con éxito!')).toBeNull();
   expect(screen.getByDisplayValue('Consulta de prueba')).toBeTruthy();
   expect(screen.getByRole<HTMLButtonElement>('button', { name: 'Enviar Mensaje' }).disabled).toBe(false);

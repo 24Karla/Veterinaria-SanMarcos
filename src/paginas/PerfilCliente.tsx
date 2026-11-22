@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import EstadoApi from '../componentes/moleculas/EstadoApi';
 import {
     api,
+    mostrarErrorFormulario,
     pedirDatos,
-    mensajeError,
     type UsuarioApi,
     type MascotaApi,
     type CitaApi,
@@ -93,7 +93,7 @@ export default function PerfilCliente({ sesion }: Props) {
             setEditandoPerfil(false);
             setAviso('Perfil actualizado.');
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -129,7 +129,7 @@ export default function PerfilCliente({ sesion }: Props) {
             setEditandoMascota(null);
             setAviso('Mascota guardada.');
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -145,7 +145,7 @@ export default function PerfilCliente({ sesion }: Props) {
             });
             setMascotas((actuales) => actuales.filter((mascota) => mascota.id !== id));
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -168,7 +168,7 @@ export default function PerfilCliente({ sesion }: Props) {
             <header className="perfil-encabezado">
                 <span className="perfil-etiqueta">PORTAL CLIENTE</span>
                 <h1>Hola, {perfil.nombre}</h1>
-                <p>Tu perfil y los datos de tus mascotas.</p>
+                <p>Administra la salud y cuidados de tus mascotas en un solo lugar.</p>
             </header>
             <EstadoApi cargando={cargando} error={error} />
             {aviso && (
@@ -177,20 +177,23 @@ export default function PerfilCliente({ sesion }: Props) {
                 </p>
             )}
             <section className="perfil-grid">
-                <article className="perfil-tarjeta">
-                    <h2>Mis datos</h2>
-                    <p>{sesion.correo}</p>
-                    <p>
-                        {perfil.telefono} · {perfil.ciudad}
-                    </p>
-                    <button
-                        className="btn btn-volver-tienda"
-                        onClick={() => setEditandoPerfil(!editandoPerfil)}
-                    >
-                        Editar perfil
-                    </button>
+                <article className="perfil-tarjeta perfil-tarjeta-destacada">
+                    <div>
+                        <h2>Mi perfil</h2>
+                        <p>{sesion.correo}</p>
+                        {perfil.ciudad && <p>{perfil.ciudad}</p>}
+                        {perfil.telefono && <p>{perfil.telefono}</p>}
+                    </div>
+                    {!editandoPerfil && (
+                        <button
+                            className="btn btn-volver-tienda"
+                            onClick={() => setEditandoPerfil(true)}
+                        >
+                            Editar perfil
+                        </button>
+                    )}
                     {editandoPerfil && (
-                        <form onSubmit={guardarPerfil} className="mt-3">
+                        <form onSubmit={guardarPerfil} className="formulario-perfil">
                             <label htmlFor="nombre-perfil">Nombre</label>
                             <input
                                 id="nombre-perfil"
@@ -225,35 +228,49 @@ export default function PerfilCliente({ sesion }: Props) {
                             <button className="btn btn-tienda mt-3" disabled={ocupado}>
                                 Guardar perfil
                             </button>
+                            <button
+                                type="button"
+                                className="btn btn-volver-tienda"
+                                onClick={() => setEditandoPerfil(false)}
+                            >
+                                Cancelar
+                            </button>
                         </form>
                     )}
                 </article>
                 <article className="perfil-tarjeta">
-                    <h2>Mis mascotas</h2>
+                    <div className="perfil-titulo">
+                        <h2>Mis mascotas</h2>
+                    </div>
                     {!cargando && mascotas.length === 0 && (
                         <p>No tienes mascotas registradas.</p>
                     )}
-                    {mascotas.map((mascota) => (
-                        <div className="perfil-lista mb-3" key={mascota.id}>
-                            <strong>{mascota.nombre}</strong>
-                            <p>
-                                {mascota.especie} · {mascota.raza} · {mascota.edad} años
-                            </p>
-                            <button
-                                className="btn btn-volver-tienda me-2"
-                                onClick={() => editarMascota(mascota)}
-                            >
-                                Editar
-                            </button>
-                            <button
-                                className="btn btn-outline-danger"
-                                disabled={ocupado}
-                                onClick={() => eliminarMascota(mascota.id)}
-                            >
-                                Eliminar
-                            </button>
-                        </div>
-                    ))}
+                    <div className="perfil-lista">
+                        {mascotas.map((mascota) => (
+                            <div key={mascota.id}>
+                                <strong>{mascota.nombre}</strong>
+                                <span>
+                                    {mascota.especie} · {mascota.raza} · {mascota.edad}{' '}
+                                    años
+                                </span>
+                                <div className="acciones-mascota">
+                                    <button
+                                        className="btn btn-volver-tienda"
+                                        onClick={() => editarMascota(mascota)}
+                                    >
+                                        Editar
+                                    </button>
+                                    <button
+                                        className="btn btn-eliminar"
+                                        disabled={ocupado}
+                                        onClick={() => eliminarMascota(mascota.id)}
+                                    >
+                                        Eliminar
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                     <button className="btn btn-tienda" onClick={() => editarMascota()}>
                         Agregar mascota
                     </button>
@@ -330,7 +347,7 @@ export default function PerfilCliente({ sesion }: Props) {
                                 Guardar mascota
                             </button>
                             <button
-                                className="btn btn-link mt-3"
+                                className="btn btn-volver-tienda mt-3"
                                 type="button"
                                 onClick={() => setMostrarMascota(false)}
                             >
@@ -340,28 +357,42 @@ export default function PerfilCliente({ sesion }: Props) {
                     )}
                 </article>
                 <article className="perfil-tarjeta">
-                    <h2>Mis próximas citas</h2>
+                    <div className="perfil-titulo">
+                        <h2>Próximas citas</h2>
+                    </div>
                     {citas
                         .filter((cita) => cita.estado === 'RESERVADA')
                         .slice(0, 3)
                         .map((cita) => (
-                            <p key={cita.id}>
-                                {cita.mascota} · {cita.fecha} · {cita.hora.slice(0, 5)} ·{' '}
-                                {cita.veterinario}
-                            </p>
+                            <div className="perfil-cita" key={cita.id}>
+                                <strong>
+                                    {cita.motivo} · {cita.mascota}
+                                </strong>
+                                <span>
+                                    {cita.fecha} · {cita.hora.slice(0, 5)}
+                                </span>
+                                <span>{cita.veterinario}</span>
+                            </div>
                         ))}
-                    <Link
-                        className="btn btn-tienda me-2"
-                        to="/tienda?pagina=cita&origen=perfil"
-                    >
-                        Reservar cita
-                    </Link>
-                    <Link className="btn btn-volver-tienda" to="/perfil/cliente/citas">
-                        Ver mis citas
-                    </Link>
+                    <div className="acciones-cita">
+                        <Link
+                            className="btn btn-tienda"
+                            to="/tienda?pagina=cita&origen=perfil"
+                        >
+                            Reservar cita
+                        </Link>
+                        <Link
+                            className="btn btn-volver-tienda"
+                            to="/perfil/cliente/citas"
+                        >
+                            Ver mis citas
+                        </Link>
+                    </div>
                 </article>
                 <article className="perfil-tarjeta">
-                    <h2>Historial veterinario</h2>
+                    <div className="perfil-titulo">
+                        <h2>Historial veterinario</h2>
+                    </div>
                     <p>
                         Consulta diagnósticos, recetas e indicaciones registrados por el
                         veterinario.
@@ -374,13 +405,21 @@ export default function PerfilCliente({ sesion }: Props) {
                     </Link>
                 </article>
                 <article className="perfil-tarjeta">
-                    <h2>Mis compras</h2>
-                    {pedidos.slice(0, 2).map((pedido) => (
-                        <p key={pedido.id}>
-                            Pedido #{pedido.id} · ${pedido.total.toLocaleString('es-CL')}{' '}
-                            · {pedido.estado}
-                        </p>
-                    ))}
+                    <div className="perfil-titulo">
+                        <h2>Mis compras</h2>
+                    </div>
+                    <div className="perfil-lista">
+                        {pedidos.slice(0, 2).map((pedido) => (
+                            <div key={pedido.id}>
+                                <strong>Pedido #{pedido.id}</strong>
+                                <span>
+                                    {pedido.fecha.slice(0, 10)} · $
+                                    {pedido.total.toLocaleString('es-CL')} ·{' '}
+                                    {pedido.estado}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
                     <Link className="btn btn-volver-tienda" to="/perfil/cliente/compras">
                         Ver historial de compras
                     </Link>

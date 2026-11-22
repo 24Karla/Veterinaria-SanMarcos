@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import EstadoApi from '../componentes/moleculas/EstadoApi';
 import {
     api,
+    mostrarErrorFormulario,
     pedirDatos,
     mensajeError,
     type CitaApi,
@@ -49,7 +50,7 @@ export function CitasAdministrador() {
             setHorarios((actuales) => [...actuales, horario]);
             setDatos({ ...datos, hora: '' });
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -73,7 +74,7 @@ export function CitasAdministrador() {
             );
             setHorarios(await pedirDatos<HorarioApi[]>(`${api.agenda}/api/horarios`));
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -87,7 +88,7 @@ export function CitasAdministrador() {
             await pedirDatos(`${api.agenda}/api/horarios/${id}`, { method: 'DELETE' });
             setHorarios((actuales) => actuales.filter((horario) => horario.id !== id));
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -98,7 +99,11 @@ export function CitasAdministrador() {
             <Link to="/perfil/administrador" className="btn btn-volver-tienda mb-4">
                 ← Volver a mi perfil
             </Link>
-            <h1>Flujo de citas y horarios</h1>
+            <header className="perfil-encabezado">
+                <span className="perfil-etiqueta">ADMINISTRACIÓN</span>
+                <h1>Flujo de citas</h1>
+                <p>Organiza las atenciones y disponibilidad de la veterinaria.</p>
+            </header>
             <EstadoApi cargando={cargando} error={error} />
             <form className="perfil-tarjeta mb-4" onSubmit={crearHorario}>
                 <h2>Habilitar un horario</h2>
@@ -148,7 +153,7 @@ export function CitasAdministrador() {
                 <div className="perfil-tarjeta mb-2" key={horario.id}>
                     {horario.fecha} · {horario.hora.slice(0, 5)} · {horario.veterinario}
                     <button
-                        className="btn btn-outline-danger ms-3"
+                        className="btn btn-eliminar ms-3"
                         disabled={ocupado}
                         onClick={() => desactivarHorario(horario.id)}
                     >
@@ -160,38 +165,49 @@ export function CitasAdministrador() {
             {!cargando && !error && citas.length === 0 && (
                 <p>No hay citas registradas.</p>
             )}
-            {citas.map((cita) => (
-                <article className="perfil-tarjeta mb-3" key={cita.id}>
-                    <h3>
-                        {cita.mascota} · {cita.servicio}
-                    </h3>
-                    <p>
-                        {cita.dueno} · {cita.correo}
-                    </p>
-                    <p>
-                        {cita.fecha} · {cita.hora.slice(0, 5)} · {cita.veterinario} ·{' '}
-                        {cita.estado}
-                    </p>
-                    {cita.estado === 'RESERVADA' && (
-                        <>
-                            <button
-                                className="btn btn-tienda me-2"
-                                disabled={ocupado}
-                                onClick={() => cambiarCita(cita, true)}
-                            >
-                                Marcar atendida
-                            </button>
-                            <button
-                                className="btn btn-outline-danger"
-                                disabled={ocupado}
-                                onClick={() => cambiarCita(cita, false)}
-                            >
-                                Cancelar cita
-                            </button>
-                        </>
-                    )}
-                </article>
-            ))}
+            <section className="lista-registros">
+                {citas.map((cita) => (
+                    <article className="registro-cita" key={cita.id}>
+                        <img
+                            className="registro-imagen"
+                            src="/img/calendario.webp"
+                            alt=""
+                        />
+                        <div>
+                            <h3>
+                                {cita.mascota} · {cita.servicio}
+                            </h3>
+                            <p>
+                                {cita.dueno} · {cita.correo}
+                            </p>
+                            <p>
+                                {cita.fecha} · {cita.hora.slice(0, 5)} ·{' '}
+                                {cita.veterinario} · {cita.estado}
+                            </p>
+                        </div>
+                        <div className="acciones-registro">
+                            {cita.estado === 'RESERVADA' && (
+                                <>
+                                    <button
+                                        className="btn btn-tienda me-2"
+                                        disabled={ocupado}
+                                        onClick={() => cambiarCita(cita, true)}
+                                    >
+                                        Marcar atendida
+                                    </button>
+                                    <button
+                                        className="btn btn-eliminar"
+                                        disabled={ocupado}
+                                        onClick={() => cambiarCita(cita, false)}
+                                    >
+                                        Cancelar cita
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </article>
+                ))}
+            </section>
         </main>
     );
 }
@@ -221,7 +237,7 @@ export function VentasAdministrador() {
                 actuales.map((pedido) => (pedido.id === id ? actualizado : pedido)),
             );
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -232,60 +248,73 @@ export function VentasAdministrador() {
             <Link to="/perfil/administrador" className="btn btn-volver-tienda mb-4">
                 ← Volver a mi perfil
             </Link>
-            <h1>Pedidos y ventas</h1>
+            <header className="perfil-encabezado">
+                <span className="perfil-etiqueta">ADMINISTRACIÓN</span>
+                <h1>Pedidos y ventas</h1>
+                <p>Consulta los pagos y pedidos de la tienda.</p>
+            </header>
             <EstadoApi cargando={cargando} error={error} />
             {!cargando && !error && pedidos.length === 0 && (
                 <p>No hay pedidos registrados.</p>
             )}
-            {pedidos.map((pedido) => (
-                <article className="perfil-tarjeta mb-3" key={pedido.id}>
-                    <h2>
-                        Pedido #{pedido.id} · {pedido.nombreCompleto}
-                    </h2>
-                    <p>
-                        {pedido.correo} · {pedido.estado} · $
-                        {pedido.total.toLocaleString('es-CL')}
-                    </p>
-                    <details>
-                        <summary>Ver detalle</summary>
-                        <p>Despacho: {pedido.direccion}</p>
-                        {pedido.productos.map((producto) => (
-                            <p key={producto.codigo}>
-                                {producto.nombre} × {producto.cantidad}
+            <section className="lista-registros">
+                {pedidos.map((pedido) => (
+                    <article className="registro-cita" key={pedido.id}>
+                        <img className="registro-imagen" src="/img/pedidos.png" alt="" />
+                        <div>
+                            <h2>
+                                Pedido #{pedido.id} · {pedido.nombreCompleto}
+                            </h2>
+                            <p>
+                                {pedido.correo} · {pedido.estado} · $
+                                {pedido.total.toLocaleString('es-CL')}
                             </p>
-                        ))}
-                    </details>
-                    {pedido.estado === 'CONFIRMADO' && (
-                        <button
-                            className="btn btn-tienda me-2 mt-2"
-                            disabled={ocupado}
-                            onClick={() => cambiarEstado(pedido.id, 'ENVIADO')}
-                        >
-                            Marcar enviado
-                        </button>
-                    )}
-                    {pedido.estado === 'ENVIADO' && (
-                        <button
-                            className="btn btn-tienda mt-2"
-                            disabled={ocupado}
-                            onClick={() => cambiarEstado(pedido.id, 'ENTREGADO')}
-                        >
-                            Marcar entregado
-                        </button>
-                    )}
-                    {['PENDIENTE', 'CONFIRMADO', 'CANCELACION_PENDIENTE'].includes(
-                        pedido.estado,
-                    ) && (
-                        <button
-                            className="btn btn-outline-danger mt-2"
-                            disabled={ocupado}
-                            onClick={() => cambiarEstado(pedido.id, 'CANCELADO')}
-                        >
-                            Cancelar pedido
-                        </button>
-                    )}
-                </article>
-            ))}
+                            <details>
+                                <summary>Ver detalle</summary>
+                                <p>Despacho: {pedido.direccion}</p>
+                                {pedido.productos.map((producto) => (
+                                    <p key={producto.codigo}>
+                                        {producto.nombre} × {producto.cantidad}
+                                    </p>
+                                ))}
+                            </details>
+                        </div>
+                        <div className="acciones-registro">
+                            {pedido.estado === 'CONFIRMADO' && (
+                                <button
+                                    className="btn btn-tienda me-2 mt-2"
+                                    disabled={ocupado}
+                                    onClick={() => cambiarEstado(pedido.id, 'ENVIADO')}
+                                >
+                                    Marcar enviado
+                                </button>
+                            )}
+                            {pedido.estado === 'ENVIADO' && (
+                                <button
+                                    className="btn btn-tienda mt-2"
+                                    disabled={ocupado}
+                                    onClick={() => cambiarEstado(pedido.id, 'ENTREGADO')}
+                                >
+                                    Marcar entregado
+                                </button>
+                            )}
+                            {[
+                                'PENDIENTE',
+                                'CONFIRMADO',
+                                'CANCELACION_PENDIENTE',
+                            ].includes(pedido.estado) && (
+                                <button
+                                    className="btn btn-eliminar mt-2"
+                                    disabled={ocupado}
+                                    onClick={() => cambiarEstado(pedido.id, 'CANCELADO')}
+                                >
+                                    Cancelar pedido
+                                </button>
+                            )}
+                        </div>
+                    </article>
+                ))}
+            </section>
         </main>
     );
 }
@@ -364,7 +393,7 @@ export function UsuariosAdministrador() {
             setUsuarios(await pedirDatos<UsuarioApi[]>(`${api.usuarios}/registro`));
             setMostrar(false);
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -380,7 +409,7 @@ export function UsuariosAdministrador() {
             });
             setUsuarios((actuales) => actuales.filter((usuario) => usuario.id !== id));
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -391,7 +420,11 @@ export function UsuariosAdministrador() {
             <Link to="/perfil/administrador" className="btn btn-volver-tienda mb-4">
                 ← Volver a mi perfil
             </Link>
-            <h1>Equipo y clientes</h1>
+            <header className="perfil-encabezado">
+                <span className="perfil-etiqueta">ADMINISTRACIÓN</span>
+                <h1>Equipo y clientes</h1>
+                <p>Administra los usuarios de la veterinaria.</p>
+            </header>
             <EstadoApi cargando={cargando} error={error} />
             <button className="btn btn-tienda mb-3" onClick={() => editar()}>
                 Agregar usuario
@@ -462,7 +495,7 @@ export function UsuariosAdministrador() {
                         Guardar usuario
                     </button>
                     <button
-                        className="btn btn-link mt-3"
+                        className="btn btn-volver-tienda mt-3"
                         type="button"
                         onClick={() => setMostrar(false)}
                     >
@@ -470,28 +503,39 @@ export function UsuariosAdministrador() {
                     </button>
                 </form>
             )}
-            {usuarios.map((usuario) => (
-                <article className="perfil-tarjeta mb-3" key={usuario.id}>
-                    <h2>{usuario.nombre}</h2>
-                    <p>
-                        {usuario.email} · {usuario.rol}
-                    </p>
-                    <p>{usuario.especialidad}</p>
-                    <button
-                        className="btn btn-volver-tienda me-2"
-                        onClick={() => editar(usuario)}
-                    >
-                        Editar
-                    </button>
-                    <button
-                        className="btn btn-outline-danger"
-                        disabled={ocupado}
-                        onClick={() => eliminar(usuario.id)}
-                    >
-                        Eliminar
-                    </button>
-                </article>
-            ))}
+            <section className="lista-registros">
+                {usuarios.map((usuario) => (
+                    <article className="registro-cita" key={usuario.id}>
+                        <img
+                            className="registro-imagen"
+                            src="/img/veterinarios.jpg"
+                            alt=""
+                        />
+                        <div>
+                            <h2>{usuario.nombre}</h2>
+                            <p>
+                                {usuario.email} · {usuario.rol}
+                            </p>
+                            <p>{usuario.especialidad}</p>
+                        </div>
+                        <div className="acciones-registro">
+                            <button
+                                className="btn btn-volver-tienda me-2"
+                                onClick={() => editar(usuario)}
+                            >
+                                Editar
+                            </button>
+                            <button
+                                className="btn btn-eliminar"
+                                disabled={ocupado}
+                                onClick={() => eliminar(usuario.id)}
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    </article>
+                ))}
+            </section>
         </main>
     );
 }
@@ -527,7 +571,7 @@ export function MensajesAdministrador() {
                       ),
             );
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -538,37 +582,53 @@ export function MensajesAdministrador() {
             <Link to="/perfil/administrador" className="btn btn-volver-tienda mb-4">
                 ← Volver a mi perfil
             </Link>
-            <h1>Mensajes de contacto</h1>
+            <header className="perfil-encabezado">
+                <span className="perfil-etiqueta">ADMINISTRACIÓN</span>
+                <h1>Mensajes de contacto</h1>
+                <p>Revisa las consultas enviadas desde el formulario de contacto.</p>
+            </header>
             <EstadoApi cargando={cargando} error={error} />
             {!cargando && !error && mensajes.length === 0 && (
                 <p>No hay mensajes registrados.</p>
             )}
-            {mensajes.map((mensaje) => (
-                <article className="perfil-tarjeta mb-3" key={mensaje.id}>
-                    <h2>{mensaje.asunto}</h2>
-                    <p>
-                        {mensaje.nombreCompleto} · {mensaje.correo} · {mensaje.telefono}
-                    </p>
-                    <p>{mensaje.mensaje}</p>
-                    <p>{mensaje.estado}</p>
-                    {mensaje.estado === 'PENDIENTE' && (
-                        <button
-                            className="btn btn-tienda me-2"
-                            disabled={ocupado}
-                            onClick={() => cambiar(mensaje, false)}
-                        >
-                            Marcar atendido
-                        </button>
-                    )}
-                    <button
-                        className="btn btn-outline-danger"
-                        disabled={ocupado}
-                        onClick={() => cambiar(mensaje, true)}
-                    >
-                        Eliminar
-                    </button>
-                </article>
-            ))}
+            <section className="lista-registros">
+                {mensajes.map((mensaje) => (
+                    <article className="registro-cita" key={mensaje.id}>
+                        <img
+                            className="registro-imagen"
+                            src="/img/historialcompra.png"
+                            alt=""
+                        />
+                        <div>
+                            <h2>{mensaje.asunto}</h2>
+                            <p>
+                                {mensaje.nombreCompleto} · {mensaje.correo} ·{' '}
+                                {mensaje.telefono}
+                            </p>
+                            <p>{mensaje.mensaje}</p>
+                            <p>{mensaje.estado}</p>
+                        </div>
+                        <div className="acciones-registro">
+                            {mensaje.estado === 'PENDIENTE' && (
+                                <button
+                                    className="btn btn-tienda me-2"
+                                    disabled={ocupado}
+                                    onClick={() => cambiar(mensaje, false)}
+                                >
+                                    Marcar atendido
+                                </button>
+                            )}
+                            <button
+                                className="btn btn-eliminar"
+                                disabled={ocupado}
+                                onClick={() => cambiar(mensaje, true)}
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    </article>
+                ))}
+            </section>
         </main>
     );
 }

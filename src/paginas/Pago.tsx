@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
+import OpcionesIngreso from '../componentes/moleculas/OpcionesIngreso';
 import {
     api,
+    mostrarErrorFormulario,
     pedirDatos,
-    mensajeError,
     ErrorApi,
     obtenerSesion,
     type PedidoApi,
@@ -24,11 +25,21 @@ export default function Pago({
     onIrProductos,
     onFinalizar,
 }: PagoProps) {
-    const [datos, setDatos] = useState({
-        nombre: obtenerSesion()?.nombre || '',
-        correo: obtenerSesion()?.correo || '',
-        direccion: '',
-        metodo: '',
+    const [continuarInvitado, setContinuarInvitado] = useState(false);
+    const [datos, setDatos] = useState(() => {
+        let guardados = { nombre: '', correo: '', direccion: '', metodo: '' };
+        try {
+            const borrador = sessionStorage.getItem('despacho-veterinaria');
+            if (borrador) guardados = { ...guardados, ...JSON.parse(borrador) };
+        } catch {
+            /* Si no hay un borrador válido, se muestran los campos vacíos. */
+        }
+        const sesion = obtenerSesion();
+        return {
+            ...guardados,
+            nombre: sesion?.nombre || guardados.nombre,
+            correo: sesion?.correo || guardados.correo,
+        };
     });
 
     const [totalPagado, setTotalPagado] = useState<number | null>(null);
@@ -124,12 +135,13 @@ export default function Pago({
             sessionStorage.removeItem(
                 'referencia-pedido-' + (obtenerSesion()?.correo || 'cliente'),
             );
+            sessionStorage.removeItem('despacho-veterinaria');
             onFinalizar();
         } catch (error) {
             if (error instanceof ErrorApi && error.pedidoId) {
                 setPedidoPendiente(error.pedidoId);
             }
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setEnviando(false);
         }
@@ -185,13 +197,27 @@ export default function Pago({
         );
     }
 
-    if (!obtenerSesion() && carrito.length > 0) {
+    if (!obtenerSesion() && !continuarInvitado) {
         return (
             <main className="container pagina-pago">
-                <h1>Inicia sesión para realizar tu pedido</h1>
-                <Link to="/login" className="btn btn-tienda">
-                    Iniciar sesión
-                </Link>
+                <button
+                    type="button"
+                    className="btn btn-volver-tienda"
+                    onClick={onVolver}
+                >
+                    ← Volver al carrito
+                </button>
+                <h1>Finalizar compra</h1>
+                <OpcionesIngreso
+                    volverA="/tienda?pagina=pago"
+                    onContinuarInvitado={() => setContinuarInvitado(true)}
+                    onGuardarBorrador={() =>
+                        sessionStorage.setItem(
+                            'despacho-veterinaria',
+                            JSON.stringify(datos),
+                        )
+                    }
+                />
             </main>
         );
     }
@@ -205,6 +231,24 @@ export default function Pago({
             <h1>Finalizar compra</h1>
 
             <p className="pago-subtitulo">Completa tus datos para confirmar tu pedido.</p>
+            {!obtenerSesion() && !pedidoPendiente && (
+                <p className="mb-4">
+                    Puedes comprar como invitado.{' '}
+                    <Link
+                        className="enlace-sesion-opcional"
+                        to="/login"
+                        state={{ volverA: '/tienda?pagina=pago' }}
+                        onClick={() =>
+                            sessionStorage.setItem(
+                                'despacho-veterinaria',
+                                JSON.stringify(datos),
+                            )
+                        }
+                    >
+                        Iniciar sesión (opcional)
+                    </Link>
+                </p>
+            )}
 
             <div className="pago-contenido">
                 <form className="pago-formulario" noValidate onSubmit={confirmarPago}>
@@ -234,7 +278,7 @@ export default function Pago({
 
                         <input
                             id="correo"
-                            readOnly
+                            readOnly={!!obtenerSesion()}
                             type="email"
                             className="form-control"
                             value={datos.correo}

@@ -191,3 +191,15 @@ export interface ServicioApi {
     especie: string;
     activo: boolean;
 }
+
+export function mostrarErrorFormulario(
+    error: unknown,
+    mostrarConexion: (mensaje: string) => void,
+) {
+    if (error instanceof ErrorApi && error.estado >= 400 && error.estado < 500) {
+        mostrarConexion('');
+        alert(mensajeError(error));
+    } else {
+        mostrarConexion(mensajeError(error));
+    }
+}

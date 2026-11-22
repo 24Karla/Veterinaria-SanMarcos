@@ -1,17 +1,21 @@
 import { useState, type FormEvent } from 'react';
 import CampoSesion from '../moleculas/CampoSesion';
 import type { SesionUsuario } from './PerfilProtegido';
-import { api, pedirDatos, mensajeError } from '../../servicios/api';
+import { api, mostrarErrorFormulario, pedirDatos } from '../../servicios/api';
 
 interface Props {
     onLogin: (sesion: SesionUsuario) => void;
+    crearCuenta?: boolean;
 }
 
-export default function FormularioSesion({ onLogin }: Props) {
-    const [correo, setCorreo] = useState('');
+export default function FormularioSesion({ onLogin, crearCuenta = false }: Props) {
+    const [correo, setCorreo] = useState(
+        () => localStorage.getItem('correo-recordado') || '',
+    );
     const [contrasena, setContrasena] = useState('');
     const [nombre, setNombre] = useState('');
-    const [registrando, setRegistrando] = useState(false);
+    const [recordar, setRecordar] = useState(false);
+    const [registrando, setRegistrando] = useState(crearCuenta);
     const [enviando, setEnviando] = useState(false);
     const [error, setError] = useState('');
 
@@ -20,11 +24,11 @@ export default function FormularioSesion({ onLogin }: Props) {
         if (enviando) return;
 
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim()) || !contrasena.trim()) {
-            setError('Ingresa un correo válido y tu contraseña.');
+            alert('Ingresa un correo válido y tu contraseña.');
             return;
         }
         if (registrando && !nombre.trim()) {
-            setError('Ingresa tu nombre.');
+            alert('Ingresa tu nombre.');
             return;
         }
 
@@ -49,9 +53,11 @@ export default function FormularioSesion({ onLogin }: Props) {
                     body: JSON.stringify({ correo: correo.trim(), password: contrasena }),
                 },
             );
+            if (recordar) localStorage.setItem('correo-recordado', correo.trim());
+            else localStorage.removeItem('correo-recordado');
             onLogin(sesion);
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setEnviando(false);
         }
@@ -89,6 +95,24 @@ export default function FormularioSesion({ onLogin }: Props) {
                 <p role="alert" className="alert alert-danger">
                     {error}
                 </p>
+            )}
+            {!registrando && (
+                <div className="form-check mb-3">
+                    <input
+                        className="form-check-input"
+                        type="checkbox"
+                        id="mantenerCuenta"
+                        checked={recordar}
+                        onChange={(event) => setRecordar(event.target.checked)}
+                        style={{
+                            backgroundColor: recordar ? '#e8c746' : '#fff',
+                            borderColor: recordar ? '#e8c746' : '#ced4da',
+                        }}
+                    />
+                    <label className="form-check-label" htmlFor="mantenerCuenta">
+                        Recordar cuenta
+                    </label>
+                </div>
             )}
             <button type="submit" className="btn btn-tienda w-100" disabled={enviando}>
                 {enviando ? 'Conectando…' : registrando ? 'Crear cuenta' : 'Ingresar'}

@@ -4,6 +4,41 @@ import type { Servicio } from './CardServicio';
 import EstadoApi from '../moleculas/EstadoApi';
 import { api, pedirDatos, mensajeError, type ServicioApi } from '../../servicios/api';
 
+// Imágenes que utilizaba el diseño original de los servicios.
+const imagenesServicios: Record<string, string> = {
+    SV001: '/img/consulta-general.jpg',
+    SV002: '/img/consulta-urgencia.jpg',
+    SV003: '/img/control-postoperatorio.jpg',
+    SV004: '/img/consulta-ave-conejo.jpg',
+    SV005: '/img/segunda-opinion-medica.jpg',
+    SV006: '/img/vacuna-antirrabica-canina.jpg',
+    SV007: '/img/vacuna-sextuple-canina.jpg',
+    SV008: '/img/vacuna-bivalente-felina.jpg',
+    SV009: '/img/vacuna-triple-felina.jpg',
+    SV010: '/img/vacuna-bordetella-canina.jpg',
+    SV011: '/img/vacuna-antirrabica-felina.jpg',
+    SV012: '/img/esterilizacion-hembra-canina.jpg',
+    SV013: '/img/esterilizacion-macho-canino.jpg',
+    SV014: '/img/esterilizacion-hembra-felina.jpg',
+    SV015: '/img/esterilizacion-macho-felino.jpg',
+    SV016: '/img/extirpacion-tumor-cutaneo.jpg',
+    SV017: '/img/cesarea-urgencia.jpg',
+    SV018: '/img/desparasitacion-interna-pequenos.jpg',
+    SV019: '/img/desparasitacion-interna-medianos.jpg',
+    SV020: '/img/desparasitacion-interna-grandes.jpg',
+    SV021: '/img/desparasitacion-interna-felina.jpg',
+    SV022: '/img/antiparasitario-externo-pipeta.jpg',
+    SV023: '/img/hemograma-completo.jpg',
+    SV024: '/img/perfil-bioquimico-completo.jpg',
+    SV025: '/img/radiografia-1-proyeccion.jpg',
+    SV026: '/img/ecografia-abdominal.jpg',
+    SV027: '/img/test-leishmaniasis.jpg',
+    SV028: '/img/corte-de-unas.jpg',
+    SV029: '/img/limpieza-dental.jpg',
+    SV030: '/img/microchip-identificacion.jpg',
+    SV031: '/img/hospitalizacion-por-dia.jpg',
+};
+
 function filtrarServicios(categoria: string, servicios: Servicio[] = []) {
     return categoria === 'Todas'
         ? servicios
@@ -27,7 +62,10 @@ export default function ListaServicios() {
                         precio: '$' + servicio.precioClp.toLocaleString('es-CL'),
                         duracion: servicio.duracionAprox || '',
                         categoria: servicio.categoria,
-                        imagen: servicio.imagen || '/img/consulta-general.jpg',
+                        imagen:
+                            servicio.imagen ||
+                            imagenesServicios[servicio.codigo] ||
+                            '/img/consulta-general.jpg',
                     })),
                 ),
             )

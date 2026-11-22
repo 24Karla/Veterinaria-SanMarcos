@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import EstadoApi from '../componentes/moleculas/EstadoApi';
 import {
     api,
+    mostrarErrorFormulario,
     pedirDatos,
     mensajeError,
     obtenerSesion,
@@ -41,7 +42,7 @@ export function AgendaVeterinario() {
                 actuales.map((actual) => (actual.id === id ? cita : actual)),
             );
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -52,38 +53,53 @@ export function AgendaVeterinario() {
             <Link to="/perfil/veterinario" className="btn btn-volver-tienda mb-4">
                 ← Volver a mi perfil
             </Link>
-            <h1>Mi agenda</h1>
+            <header className="perfil-encabezado">
+                <span className="perfil-etiqueta">PANEL VETERINARIO</span>
+                <h1>Mi agenda</h1>
+                <p>Citas agendadas para tu jornada de atención.</p>
+            </header>
             <EstadoApi cargando={cargando} error={error} />
             {!cargando && !error && citas.length === 0 && (
                 <p>No tienes citas asignadas.</p>
             )}
-            {citas.map((cita) => (
-                <article className="perfil-tarjeta mb-3" key={cita.id}>
-                    <h2>
-                        {cita.mascota} · {cita.servicio}
-                    </h2>
-                    <p>
-                        {cita.fecha} · {cita.hora.slice(0, 5)} · {cita.dueno} ·{' '}
-                        {cita.estado}
-                    </p>
-                    <p>{cita.motivo}</p>
-                    {cita.estado === 'RESERVADA' && (
-                        <button
-                            className="btn btn-tienda me-2"
-                            disabled={ocupado}
-                            onClick={() => atender(cita.id)}
-                        >
-                            Marcar atendida
-                        </button>
-                    )}
-                    <Link
-                        className="btn btn-volver-tienda"
-                        to="/perfil/veterinario/historial"
-                    >
-                        Registrar atención clínica
-                    </Link>
-                </article>
-            ))}
+            <section className="lista-registros">
+                {citas.map((cita) => (
+                    <article className="registro-cita" key={cita.id}>
+                        <img
+                            className="registro-imagen"
+                            src="/img/calendario.webp"
+                            alt=""
+                        />
+                        <div>
+                            <h2>
+                                {cita.mascota} · {cita.servicio}
+                            </h2>
+                            <p>
+                                {cita.fecha} · {cita.hora.slice(0, 5)} · {cita.dueno} ·{' '}
+                                {cita.estado}
+                            </p>
+                            <p>{cita.motivo}</p>
+                        </div>
+                        <div className="acciones-registro">
+                            {cita.estado === 'RESERVADA' && (
+                                <button
+                                    className="btn btn-tienda me-2"
+                                    disabled={ocupado}
+                                    onClick={() => atender(cita.id)}
+                                >
+                                    Marcar atendida
+                                </button>
+                            )}
+                            <Link
+                                className="btn btn-volver-tienda"
+                                to="/perfil/veterinario/historial"
+                            >
+                                Registrar atención clínica
+                            </Link>
+                        </div>
+                    </article>
+                ))}
+            </section>
         </main>
     );
 }
@@ -151,7 +167,7 @@ function PanelClinico({ soloRecetas }: { soloRecetas: boolean }) {
         const mascota = mascotas.find((mascota) => mascota.id === Number(mascotaId));
         const dueno = usuarios.find((usuario) => usuario.id === mascota?.clienteId);
         if (!mascota || !dueno || ocupado) {
-            setError('Selecciona una mascota con un dueño registrado.');
+            alert('Selecciona una mascota con un dueño registrado.');
             return;
         }
         setOcupado(true);
@@ -174,7 +190,7 @@ function PanelClinico({ soloRecetas }: { soloRecetas: boolean }) {
             setDatos((actuales) => ({ ...actuales, pacienteId: String(ficha.id) }));
             setAviso(`Ficha #${ficha.id} creada para ${mascota.nombre}.`);
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -217,7 +233,7 @@ function PanelClinico({ soloRecetas }: { soloRecetas: boolean }) {
             setMostrar(false);
             setAviso('Atención clínica registrada.');
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -231,7 +247,15 @@ function PanelClinico({ soloRecetas }: { soloRecetas: boolean }) {
             <Link to="/perfil/veterinario" className="btn btn-volver-tienda mb-4">
                 ← Volver a mi perfil
             </Link>
-            <h1>{soloRecetas ? 'Recetas emitidas' : 'Historial clínico'}</h1>
+            <header className="perfil-encabezado">
+                <span className="perfil-etiqueta">PANEL VETERINARIO</span>
+                <h1>{soloRecetas ? 'Recetas emitidas' : 'Historial clínico'}</h1>
+                <p>
+                    {soloRecetas
+                        ? 'Revisa los tratamientos y recetas de tus pacientes.'
+                        : 'Consulta controles, diagnósticos y tratamientos de tus pacientes.'}
+                </p>
+            </header>
             <EstadoApi cargando={cargando} error={error} />
             {aviso && (
                 <p role="status" className="alert alert-success">
@@ -357,28 +381,39 @@ function PanelClinico({ soloRecetas }: { soloRecetas: boolean }) {
             {!cargando && !error && visibles.length === 0 && (
                 <p>No hay {soloRecetas ? 'recetas' : 'consultas'} registradas.</p>
             )}
-            {visibles.map((consulta) => (
-                <article className="perfil-tarjeta mb-3" key={consulta.id}>
-                    <h2>
-                        {consulta.nombrePaciente} · {consulta.tipoServicio}
-                    </h2>
-                    <p>
-                        {new Date(consulta.fechaConsulta).toLocaleString('es-CL')} ·{' '}
-                        {consulta.nombreVeterinario}
-                    </p>
-                    <p>
-                        {soloRecetas
-                            ? consulta.medicamentosRecetados
-                            : consulta.diagnostico}
-                    </p>
-                    <Link
-                        className="btn btn-volver-tienda"
-                        to={`/perfil/veterinario/consultas/${consulta.id}`}
-                    >
-                        Ver detalle de consulta
-                    </Link>
-                </article>
-            ))}
+            <section className="lista-registros">
+                {visibles.map((consulta) => (
+                    <article className="registro-cita" key={consulta.id}>
+                        <img
+                            className="registro-imagen"
+                            src="/img/historialclinico.png"
+                            alt=""
+                        />
+                        <div>
+                            <h2>
+                                {consulta.nombrePaciente} · {consulta.tipoServicio}
+                            </h2>
+                            <p>
+                                {new Date(consulta.fechaConsulta).toLocaleString('es-CL')}{' '}
+                                · {consulta.nombreVeterinario}
+                            </p>
+                            <p>
+                                {soloRecetas
+                                    ? consulta.medicamentosRecetados
+                                    : consulta.diagnostico}
+                            </p>
+                        </div>
+                        <div className="acciones-registro">
+                            <Link
+                                className="btn btn-volver-tienda"
+                                to={`/perfil/veterinario/consultas/${consulta.id}`}
+                            >
+                                Ver detalle de consulta
+                            </Link>
+                        </div>
+                    </article>
+                ))}
+            </section>
         </main>
     );
 }

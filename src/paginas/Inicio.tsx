@@ -8,7 +8,7 @@ function Inicio() {
 
             <div
                 style={{
-                    backgroundImage: "url('/img/amigos.jpg')",
+                    backgroundImage: "linear-gradient(90deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.12)), url('/img/amigos.jpg')",
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat',

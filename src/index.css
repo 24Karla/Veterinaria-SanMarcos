@@ -105,6 +105,7 @@ footer {
    ================================================== */
 
 .btn-carrito {
+    position: relative;
     display: grid;
     width: 42px;
     height: 42px;
@@ -119,6 +120,24 @@ footer {
 .btn-carrito svg {
     width: 21px;
     height: 21px;
+}
+
+.carrito-cantidad {
+    position: absolute;
+    top: -.4rem;
+    right: -.4rem;
+    display: grid;
+    min-width: 1.25rem;
+    height: 1.25rem;
+    padding: 0 .3rem;
+    place-items: center;
+    border: 2px solid #fff;
+    border-radius: 1rem;
+    background: #ffd224;
+    color: #2b180d;
+    font-size: .7rem;
+    font-weight: 800;
+    line-height: 1;
 }
 
 .btn-carrito:hover,
@@ -1286,4 +1305,27 @@ footer {
     .detalle-blog-imagen {
         min-height: 260px;
     }
+}
+
+/* Enlaces opcionales de ingreso en compra y reserva. */
+.opciones-ingreso {
+    min-height: 0;
+    max-width: 580px;
+    margin: 2rem auto;
+    padding: 2rem;
+    text-align: center;
+}
+
+@media (min-width: 768px) {
+    .login-panel {
+        min-height: 560px;
+    }
+}
+
+.enlace-sesion-opcional,
+.enlace-sesion-opcional:hover,
+.enlace-sesion-opcional:focus,
+.enlace-sesion-opcional:active {
+    color: #6c757d;
+    text-decoration: none;
 }

@@ -1,7 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import EstadoApi from '../componentes/moleculas/EstadoApi';
-import { api, pedirDatos, mensajeError, type UsuarioApi } from '../servicios/api';
+import {
+    api,
+    mostrarErrorFormulario,
+    pedirDatos,
+    mensajeError,
+    type UsuarioApi,
+} from '../servicios/api';
 
 interface Catalogo {
     id: number;
@@ -121,7 +127,7 @@ export default function ClinicaAdministrador() {
             }
             setMostrar(false);
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -137,7 +143,7 @@ export default function ClinicaAdministrador() {
             });
             setCatalogo((actuales) => actuales.filter((producto) => producto.id !== id));
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -148,7 +154,7 @@ export default function ClinicaAdministrador() {
         if (ocupado) return;
         const dueno = clientes.find((cliente) => cliente.id === Number(venta.duenoId));
         if (!dueno) {
-            setError('Selecciona un cliente.');
+            alert('Selecciona un cliente.');
             return;
         }
         setOcupado(true);
@@ -172,7 +178,7 @@ export default function ClinicaAdministrador() {
                 await pedirDatos<Suministro[]>(`${api.compras}/api/productos`),
             );
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -194,7 +200,7 @@ export default function ClinicaAdministrador() {
                 await pedirDatos<Suministro[]>(`${api.compras}/api/productos`),
             );
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }

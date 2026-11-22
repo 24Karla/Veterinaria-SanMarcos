@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import EstadoApi from '../componentes/moleculas/EstadoApi';
 import {
     api,
+    mostrarErrorFormulario,
     pedirDatos,
     mensajeError,
     obtenerSesion,
@@ -12,6 +13,7 @@ import {
 
 export default function MisCitas() {
     const correo = obtenerSesion()?.correo;
+    const [citaAbierta, setCitaAbierta] = useState<number | null>(null);
     const [citas, setCitas] = useState<CitaApi[]>([]);
     const [horarios, setHorarios] = useState<HorarioApi[]>([]);
     const [cargando, setCargando] = useState(true);
@@ -42,7 +44,7 @@ export default function MisCitas() {
                 ),
             );
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -55,7 +57,7 @@ export default function MisCitas() {
             setEditando(id);
             setHorarioId('');
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         }
     }
 
@@ -84,7 +86,7 @@ export default function MisCitas() {
             );
             setEditando(null);
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -95,7 +97,13 @@ export default function MisCitas() {
             <Link to="/perfil/cliente" className="btn btn-volver-tienda mb-4">
                 ← Volver a mi perfil
             </Link>
-            <h1>Mis citas</h1>
+            <header className="perfil-encabezado">
+                <span className="perfil-etiqueta">PORTAL CLIENTE</span>
+
+                <h1>Mis citas veterinarias</h1>
+
+                <p>Revisa tus próximas atenciones y las citas realizadas.</p>
+            </header>
             <EstadoApi cargando={cargando} error={error} />
             <Link to="/tienda?pagina=cita&origen=perfil" className="btn btn-tienda mb-3">
                 Reservar cita
@@ -105,60 +113,122 @@ export default function MisCitas() {
             )}
             <section className="lista-registros">
                 {citas.map((cita) => (
-                    <article className="perfil-tarjeta" key={cita.id}>
-                        <h2>
-                            {cita.servicio} · {cita.mascota}
-                        </h2>
-                        <p>
-                            {cita.fecha} · {cita.hora.slice(0, 5)} · {cita.veterinario}
-                        </p>
-                        <p>
-                            {cita.motivo} · {cita.estado}
-                        </p>
-                        {cita.estado === 'RESERVADA' && (
-                            <div>
-                                <button
-                                    className="btn btn-volver-tienda me-2"
-                                    disabled={ocupado}
-                                    onClick={() => abrirReprogramacion(cita.id)}
-                                >
-                                    Reprogramar
-                                </button>
-                                <button
-                                    className="btn btn-outline-danger"
-                                    disabled={ocupado}
-                                    onClick={() => cancelar(cita)}
-                                >
-                                    Cancelar cita
-                                </button>
-                            </div>
-                        )}
-                        {editando === cita.id && (
-                            <div className="mt-3">
-                                <label htmlFor={`horario-${cita.id}`}>
-                                    Nuevo horario
-                                </label>
-                                <select
-                                    id={`horario-${cita.id}`}
-                                    className="form-select"
-                                    value={horarioId}
-                                    onChange={(event) => setHorarioId(event.target.value)}
-                                >
-                                    <option value="">Selecciona</option>
-                                    {horarios.map((horario) => (
-                                        <option key={horario.id} value={horario.id}>
-                                            {horario.fecha} · {horario.hora.slice(0, 5)} ·{' '}
-                                            {horario.veterinario}
-                                        </option>
-                                    ))}
-                                </select>
-                                <button
-                                    className="btn btn-tienda mt-2"
-                                    disabled={ocupado || !horarioId}
-                                    onClick={() => reprogramar(cita)}
-                                >
-                                    Guardar nuevo horario
-                                </button>
+                    <article
+                        className={`registro-cita ${cita.estado === 'RESERVADA' ? 'registro-cita-proxima' : ''}`}
+                        key={cita.id}
+                    >
+                        <div className="registro-fecha">
+                            <strong>{cita.fecha.slice(8, 10)}</strong>
+                            <span>
+                                {
+                                    [
+                                        'ENE',
+                                        'FEB',
+                                        'MAR',
+                                        'ABR',
+                                        'MAY',
+                                        'JUN',
+                                        'JUL',
+                                        'AGO',
+                                        'SEP',
+                                        'OCT',
+                                        'NOV',
+                                        'DIC',
+                                    ][Number(cita.fecha.slice(5, 7)) - 1]
+                                }
+                            </span>
+                        </div>
+                        <div>
+                            <span
+                                className={`registro-estado ${cita.estado === 'ATENDIDA' ? 'registro-realizada' : ''}`}
+                            >
+                                {cita.estado === 'RESERVADA'
+                                    ? 'Próxima cita'
+                                    : cita.estado === 'ATENDIDA'
+                                      ? 'Realizada'
+                                      : cita.estado}
+                            </span>
+                            <h2>
+                                {cita.motivo} · {cita.mascota}
+                            </h2>
+                            <p>
+                                {cita.hora.slice(0, 5)} hrs · {cita.veterinario}
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            className={
+                                cita.estado === 'RESERVADA'
+                                    ? 'btn btn-tienda'
+                                    : 'btn btn-volver-tienda'
+                            }
+                            onClick={() =>
+                                setCitaAbierta(citaAbierta === cita.id ? null : cita.id)
+                            }
+                        >
+                            {citaAbierta === cita.id ? 'Ocultar detalle' : 'Ver detalle'}
+                        </button>
+                        {citaAbierta === cita.id && (
+                            <div className="registro-detalle">
+                                <strong>
+                                    {cita.servicio} de {cita.mascota}
+                                </strong>
+                                <span>
+                                    {cita.fecha} · {cita.hora.slice(0, 5)} ·{' '}
+                                    {cita.veterinario}
+                                </span>
+                                {cita.estado === 'RESERVADA' && (
+                                    <div className="acciones-cita">
+                                        <button
+                                            className="btn btn-volver-tienda"
+                                            disabled={ocupado}
+                                            onClick={() => abrirReprogramacion(cita.id)}
+                                        >
+                                            Reprogramar
+                                        </button>
+                                        <button
+                                            className="btn btn-eliminar"
+                                            disabled={ocupado}
+                                            onClick={() => cancelar(cita)}
+                                        >
+                                            Cancelar cita
+                                        </button>
+                                    </div>
+                                )}
+                                {editando === cita.id && (
+                                    <div className="formulario-mascota">
+                                        <label htmlFor={`horario-${cita.id}`}>
+                                            Nuevo horario
+                                        </label>
+                                        <select
+                                            id={`horario-${cita.id}`}
+                                            className="form-select"
+                                            value={horarioId}
+                                            onChange={(event) =>
+                                                setHorarioId(event.target.value)
+                                            }
+                                        >
+                                            <option value="">Selecciona</option>
+                                            {horarios.map((horario) => (
+                                                <option
+                                                    key={horario.id}
+                                                    value={horario.id}
+                                                >
+                                                    {horario.fecha} ·{' '}
+                                                    {horario.hora.slice(0, 5)} ·{' '}
+                                                    {horario.veterinario}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            className="btn btn-tienda"
+                                            disabled={ocupado || !horarioId}
+                                            onClick={() => reprogramar(cita)}
+                                        >
+                                            Guardar nuevo horario
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </article>

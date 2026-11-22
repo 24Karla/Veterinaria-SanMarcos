@@ -2,7 +2,13 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import EstadoApi from '../componentes/moleculas/EstadoApi';
 import type { PublicacionBlog } from '../componentes/organismos/CardBlog';
-import { api, pedirDatos, mensajeError, type ServicioApi } from '../servicios/api';
+import {
+    api,
+    mostrarErrorFormulario,
+    pedirDatos,
+    mensajeError,
+    type ServicioApi,
+} from '../servicios/api';
 
 const publicacionVacia = {
     titulo: '',
@@ -72,7 +78,7 @@ export default function ContenidoAdministrador() {
             );
             setMostrarBlog(false);
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -88,7 +94,7 @@ export default function ContenidoAdministrador() {
             });
             setPublicaciones((actuales) => actuales.filter((actual) => actual.id !== id));
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -122,7 +128,7 @@ export default function ContenidoAdministrador() {
             );
             setMostrarServicio(false);
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
@@ -141,7 +147,7 @@ export default function ContenidoAdministrador() {
                 actuales.filter((actual) => actual.codigo !== servicio.codigo),
             );
         } catch (error) {
-            setError(mensajeError(error));
+            mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
