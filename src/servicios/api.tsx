@@ -13,6 +13,7 @@ export const api = {
     pedidos: import.meta.env.VITE_PEDIDOS_URL || `${gateway}/pedidos`,
     agenda: import.meta.env.VITE_AGENDA_URL || `${gateway}/agenda`,
     compras: import.meta.env.VITE_COMPRAS_URL || `${gateway}/compras`,
+    servicios: import.meta.env.VITE_SERVICIOS_URL || `${gateway}/servicios`
 };
 
 export class ErrorApi extends Error {

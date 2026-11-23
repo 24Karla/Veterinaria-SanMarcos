@@ -10,8 +10,11 @@ function esCorreoValido(correo: string) {
 }
 
 function esTelefonoValido(telefono: string) {
-  return telefono.trim() === '' || /^\+?[0-9]+$/.test(telefono.trim());
+    return telefono.trim() === '' ||
+        /^(?:\+?56)?9[0-9]{8}$/.test(telefono.trim());
 }
+
+
 
 export default function FormularioContacto() {
   const [nombre, setNombre] = useState('');
@@ -40,7 +43,7 @@ export default function FormularioContacto() {
     }
 
     if (!esTelefonoValido(telefono)) {
-      alert('El teléfono solo puede contener números y un + inicial');
+      alert('El formato del telefono es de 9 digitos');
       return;
     }
 
