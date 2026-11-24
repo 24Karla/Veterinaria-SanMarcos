@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { horarioAtencion } from '../../servicios/horarioAtencion';
 
 function Footer() {
     return (
@@ -23,9 +24,9 @@ function Footer() {
                     <div className="col-md-4 mb-3">
                         <h3 className="fw-bold text-white mb-3 fs-6">Horario</h3>
                         <ul className="list-unstyled text-white-50 mb-0 small">
-                            <li className="mb-1">Lunes - Viernes: 13:30 - 19:30</li>
-                            <li className="mb-1">Sábados: 9:00 - 13:00</li>
-                            <li className="mb-1">Domingo: Cerrado</li>
+                            {horarioAtencion.map((horario) => (
+                                <li className="mb-1" key={horario}>{horario}</li>
+                            ))}
                         </ul>
                     </div>
 

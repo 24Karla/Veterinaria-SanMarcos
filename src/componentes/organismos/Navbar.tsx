@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
+import { rutasPerfil } from '../../servicios/rutas';
 import type { ProductoCarrito } from './CardTienda';
+import type { SesionUsuario } from './PerfilProtegido';
 
 function obtenerCantidadCarrito() {
     try {
@@ -15,19 +17,9 @@ function obtenerCantidadCarrito() {
 }
 
 interface NavbarProps {
-    sesion: {
-        nombre: string;
-        correo: string;
-        rol: 'cliente' | 'veterinario' | 'administrador';
-    } | null;
+    sesion: SesionUsuario | null;
     onCerrarSesion: () => void;
 }
-
-const rutasPerfil = {
-    cliente: '/perfil/cliente',
-    veterinario: '/perfil/veterinario',
-    administrador: '/perfil/administrador',
-};
 
 function Navbar({ sesion, onCerrarSesion }: NavbarProps) {
     const ubicacion = useLocation();

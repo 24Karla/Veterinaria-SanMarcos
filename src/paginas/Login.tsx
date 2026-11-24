@@ -1,12 +1,9 @@
 import FormularioSesion from '../componentes/organismos/FormularioSesion';
 import { useLocation } from 'react-router-dom';
+import type { SesionUsuario } from '../componentes/organismos/PerfilProtegido';
 
 interface LoginProps {
-    onLogin: (sesion: {
-        nombre: string;
-        correo: string;
-        rol: 'cliente' | 'veterinario' | 'administrador';
-    }) => void;
+    onLogin: (sesion: SesionUsuario) => void;
 }
 
 function Login({ onLogin }: LoginProps) {

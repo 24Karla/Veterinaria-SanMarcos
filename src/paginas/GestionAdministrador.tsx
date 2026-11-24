@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import EstadoApi from '../componentes/moleculas/EstadoApi';
 import {
     api,
+    estadosCita,
     mostrarErrorFormulario,
     pedirDatos,
     mensajeError,
@@ -12,6 +13,7 @@ import {
     type UsuarioApi,
     type ContactoApi,
 } from '../servicios/api';
+import { describirHorario, horarioParaFecha } from '../servicios/horarioAtencion';
 
 const formatoFechaHorario = new Intl.DateTimeFormat('es-CL', {
     day: 'numeric',
@@ -28,6 +30,10 @@ export function CitasAdministrador() {
     const [error, setError] = useState('');
     const [ocupado, setOcupado] = useState(false);
     const [datos, setDatos] = useState({ fecha: '', hora: '', veterinario: '' });
+    const horarioDelDia = horarioParaFecha(datos.fecha);
+    const horaFueraDeRango = Boolean(horarioDelDia && datos.hora && (
+        datos.hora < horarioDelDia.apertura || datos.hora > horarioDelDia.cierre
+    ));
     const horariosOrdenados = [...horarios].sort((a, b) =>
         `${a.fecha}T${a.hora}`.localeCompare(`${b.fecha}T${b.hora}`),
     );
@@ -49,7 +55,7 @@ export function CitasAdministrador() {
 
     async function crearHorario(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        if (ocupado) return;
+        if (ocupado || !horarioDelDia || horaFueraDeRango) return;
         setOcupado(true);
         setError('');
         try {
@@ -127,7 +133,7 @@ export function CitasAdministrador() {
                             required
                             value={datos.fecha}
                             onChange={(event) =>
-                                setDatos({ ...datos, fecha: event.target.value })
+                                setDatos({ ...datos, fecha: event.target.value, hora: '' })
                             }
                         />
                     </div>
@@ -138,6 +144,11 @@ export function CitasAdministrador() {
                             id="hora-horario"
                             type="time"
                             required
+                            disabled={!horarioDelDia}
+                            min={horarioDelDia?.apertura}
+                            max={horarioDelDia?.cierre}
+                            aria-describedby="limites-horario"
+                            aria-invalid={horaFueraDeRango}
                             value={datos.hora}
                             onChange={(event) => setDatos({ ...datos, hora: event.target.value })}
                         />
@@ -161,10 +172,19 @@ export function CitasAdministrador() {
                             ))}
                         </select>
                     </div>
-                    <button type="submit" className="btn btn-tienda" disabled={ocupado}>
+                    <button
+                        type="submit"
+                        className="btn btn-tienda"
+                        disabled={ocupado || !horarioDelDia || horaFueraDeRango}
+                    >
                         Crear horario
                     </button>
                 </div>
+                <p id="limites-horario" className="form-text mb-0" aria-live="polite">
+                    {!datos.fecha && 'Selecciona una fecha para ver el horario de atención.'}
+                    {datos.fecha && !horarioDelDia && 'La veterinaria cierra los domingos.'}
+                    {horarioDelDia && `Elige una hora ${describirHorario(horarioDelDia)}.`}
+                </p>
             </form>
             <section aria-labelledby="titulo-horarios">
                 <h2 className="agenda-titulo" id="titulo-horarios">Horarios disponibles</h2>
@@ -219,7 +239,7 @@ export function CitasAdministrador() {
                             </p>
                             <p>
                                 {cita.fecha} · {cita.hora.slice(0, 5)} ·{' '}
-                                {cita.veterinario} · {cita.estado}
+                                {cita.veterinario} · {estadosCita[cita.estado] ?? cita.estado}
                             </p>
                         </div>
                         <div className="acciones-registro">

@@ -1,6 +1,7 @@
 export const rutasPerfil = {
     cliente: '/perfil/cliente',
     veterinario: '/perfil/veterinario',
+    recepcionista: '/perfil/recepcionista',
     administrador: '/perfil/administrador',
 };
 

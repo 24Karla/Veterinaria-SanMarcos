@@ -1,13 +1,15 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import EstadoApi from '../componentes/moleculas/EstadoApi';
 import {
     api,
     mostrarErrorFormulario,
     pedirDatos,
     mensajeError,
+    type CompraClinicaApi,
     type UsuarioApi,
 } from '../servicios/api';
+import { rutasPerfil } from '../servicios/rutas';
 
 interface Catalogo {
     id: number;
@@ -31,14 +33,6 @@ interface Suministro {
     precioUnitarioClp: number;
     activo: boolean;
 }
-interface Compra {
-    id: number;
-    nombreDueno: string;
-    fechaCompra: string;
-    totalClp: number;
-    estado: string;
-    detalles: { codigoProducto: string; nombreProducto: string; cantidad: number }[];
-}
 const vacio = {
     codigo: '',
     categoria: '',
@@ -50,10 +44,11 @@ const vacio = {
     precio: '',
 };
 
-export default function ClinicaAdministrador() {
+export default function ClinicaAdministrador({ soloCompras = false }: { soloCompras?: boolean }) {
+    const { hash } = useLocation();
     const [catalogo, setCatalogo] = useState<Catalogo[]>([]);
     const [suministros, setSuministros] = useState<Suministro[]>([]);
-    const [compras, setCompras] = useState<Compra[]>([]);
+    const [compras, setCompras] = useState<CompraClinicaApi[]>([]);
     const [clientes, setClientes] = useState<UsuarioApi[]>([]);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState('');
@@ -67,12 +62,14 @@ export default function ClinicaAdministrador() {
         codigoProducto: '',
         cantidad: '1',
     });
+    const [articulos, setArticulos] = useState<Record<string, number>>({});
+    const [compraRegistrada, setCompraRegistrada] = useState<number | null>(null);
 
     useEffect(() => {
         Promise.all([
-            pedirDatos<Catalogo[]>(`${api.catalogo}/productos/listar`),
+            soloCompras ? Promise.resolve([]) : pedirDatos<Catalogo[]>(`${api.catalogo}/productos/listar`),
             pedirDatos<Suministro[]>(`${api.compras}/api/productos`),
-            pedirDatos<Compra[]>(`${api.compras}/api/compras`),
+            pedirDatos<CompraClinicaApi[]>(`${api.compras}/api/compras`),
             pedirDatos<UsuarioApi[]>(`${api.usuarios}/registro`),
         ])
             .then(([catalogo, suministros, compras, usuarios]) => {
@@ -83,7 +80,13 @@ export default function ClinicaAdministrador() {
             })
             .catch((error) => setError(mensajeError(error)))
             .finally(() => setCargando(false));
-    }, []);
+    }, [soloCompras]);
+
+    useEffect(() => {
+        if (soloCompras && hash === '#historial-compras' && !cargando) {
+            document.getElementById('historial-compras')?.scrollIntoView?.();
+        }
+    }, [soloCompras, hash, cargando]);
 
     async function guardar(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -149,6 +152,23 @@ export default function ClinicaAdministrador() {
         }
     }
 
+    function agregarArticulo() {
+        const producto = suministros.find(({ codigo, activo }) => activo && codigo === venta.codigoProducto);
+        const cantidad = Number(venta.cantidad);
+        if (!producto || !Number.isInteger(cantidad) || cantidad < 1) {
+            setError('Selecciona un producto e indica una cantidad válida.');
+            return;
+        }
+        const nuevaCantidad = (articulos[producto.codigo] ?? 0) + cantidad;
+        if (nuevaCantidad > producto.stockActual) {
+            setError(`Stock disponible para ${producto.nombreComercial}: ${producto.stockActual}.`);
+            return;
+        }
+        setError('');
+        setArticulos({ ...articulos, [producto.codigo]: nuevaCantidad });
+        setVenta({ ...venta, codigoProducto: '', cantidad: '1' });
+    }
+
     async function registrarCompra(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         if (ocupado) return;
@@ -157,28 +177,45 @@ export default function ClinicaAdministrador() {
             alert('Selecciona un cliente.');
             return;
         }
+        const items = Object.entries(articulos).map(([codigoProducto, cantidad]) => ({
+            codigoProducto, cantidad,
+        }));
+        if (venta.codigoProducto) {
+            const linea = items.find(({ codigoProducto }) => codigoProducto === venta.codigoProducto);
+            if (linea) linea.cantidad += Number(venta.cantidad);
+            else items.push({ codigoProducto: venta.codigoProducto, cantidad: Number(venta.cantidad) });
+        }
+        if (!items.length) {
+            setError('Agrega al menos un producto a la compra.');
+            return;
+        }
         setOcupado(true);
         setError('');
+        setCompraRegistrada(null);
         try {
-            const compra = await pedirDatos<Compra>(`${api.compras}/api/compras`, {
+            const compra = await pedirDatos<CompraClinicaApi>(`${api.compras}/api/compras`, {
                 method: 'POST',
                 body: JSON.stringify({
                     duenoId: dueno.id,
                     nombreDueno: dueno.nombre,
-                    items: [
-                        {
-                            codigoProducto: venta.codigoProducto,
-                            cantidad: Number(venta.cantidad),
-                        },
-                    ],
+                    items,
                 }),
             });
             setCompras((actuales) => [compra, ...actuales]);
+            setCompraRegistrada(compra.id);
+            setArticulos({});
+            setVenta({ duenoId: '', codigoProducto: '', cantidad: '1' });
+        } catch (error) {
+            mostrarErrorFormulario(error, setError);
+            setOcupado(false);
+            return;
+        }
+        try {
             setSuministros(
                 await pedirDatos<Suministro[]>(`${api.compras}/api/productos`),
             );
-        } catch (error) {
-            mostrarErrorFormulario(error, setError);
+        } catch {
+            setError('La compra quedó registrada. Recarga la página para actualizar el stock mostrado.');
         } finally {
             setOcupado(false);
         }
@@ -189,7 +226,7 @@ export default function ClinicaAdministrador() {
         setOcupado(true);
         setError('');
         try {
-            const compra = await pedirDatos<Compra>(
+            const compra = await pedirDatos<CompraClinicaApi>(
                 `${api.compras}/api/compras/${id}/estado?estado=${estado}`,
                 { method: 'PATCH' },
             );
@@ -208,11 +245,19 @@ export default function ClinicaAdministrador() {
 
     return (
         <main className="container panel-perfil">
-            <Link to="/perfil/administrador" className="btn btn-volver-tienda mb-4">
+            <Link to={soloCompras ? rutasPerfil.recepcionista : rutasPerfil.administrador} className="btn btn-volver-tienda mb-4">
                 ← Volver a mi perfil
             </Link>
-            <h1>Catálogo y compras clínicas</h1>
+            {soloCompras ? (
+                <header className="perfil-encabezado">
+                    <span className="perfil-etiqueta">RECEPCIÓN</span>
+                    <h1>Compras de recepción</h1>
+                </header>
+            ) : (
+                <h1>Catálogo y compras clínicas</h1>
+            )}
             <EstadoApi cargando={cargando} error={error} />
+            {!soloCompras && <>
             <p>
                 Este panel gestiona el catálogo clínico y sus suministros. La tienda web
                 utiliza Productos y Pedidos.
@@ -359,8 +404,12 @@ export default function ClinicaAdministrador() {
                           </button>
                       </article>
                   ))}
-            <h2 className="mt-4">Registrar compra de suministros</h2>
-            <form className="perfil-tarjeta mb-3" onSubmit={registrarCompra}>
+            </>}
+            <h2 className={soloCompras ? 'h4 fw-bold mb-3' : 'mt-4'}>Registrar compra de suministros</h2>
+            {compraRegistrada !== null && (
+                <p role="status" className="alert alert-success">Compra #{compraRegistrada} registrada.</p>
+            )}
+            <form className={`perfil-tarjeta mb-3 ${soloCompras ? 'agenda-formulario' : ''}`} onSubmit={registrarCompra}>
                 <label htmlFor="compra-cliente">Cliente</label>
                 <select
                     className="form-select"
@@ -374,7 +423,7 @@ export default function ClinicaAdministrador() {
                     <option value="">Selecciona</option>
                     {clientes.map((cliente) => (
                         <option key={cliente.id} value={cliente.id}>
-                            {cliente.nombre}
+                            {cliente.nombre} · {cliente.email}
                         </option>
                     ))}
                 </select>
@@ -382,14 +431,14 @@ export default function ClinicaAdministrador() {
                 <select
                     className="form-select"
                     id="compra-producto"
-                    required
+                    required={!Object.keys(articulos).length}
                     value={venta.codigoProducto}
                     onChange={(event) =>
                         setVenta({ ...venta, codigoProducto: event.target.value })
                     }
                 >
                     <option value="">Selecciona</option>
-                    {suministros.map((producto) => (
+                    {suministros.filter(({ activo }) => activo).map((producto) => (
                         <option key={producto.codigo} value={producto.codigo}>
                             {producto.nombreComercial} · Stock {producto.stockActual}
                         </option>
@@ -407,11 +456,32 @@ export default function ClinicaAdministrador() {
                         setVenta({ ...venta, cantidad: event.target.value })
                     }
                 />
-                <button className="btn btn-tienda mt-3" disabled={ocupado}>
+                <button type="button" className="btn btn-volver-tienda mt-3 me-2"
+                    disabled={ocupado || !venta.codigoProducto} onClick={agregarArticulo}>
+                    Agregar producto
+                </button>
+                <button className="btn btn-tienda mt-3" disabled={ocupado || cargando}>
                     Registrar compra clínica
                 </button>
+                {Object.entries(articulos).length > 0 && (
+                    <ul className="list-group mt-3">
+                        {Object.entries(articulos).map(([codigo, cantidad]) => (
+                            <li key={codigo} className="list-group-item d-flex justify-content-between align-items-center">
+                                {suministros.find((producto) => producto.codigo === codigo)?.nombreComercial ?? codigo} × {cantidad}
+                                <button type="button" className="btn btn-volver-tienda" disabled={ocupado}
+                                    onClick={() => setArticulos((actuales) =>
+                                        Object.fromEntries(Object.entries(actuales).filter(([articulo]) => articulo !== codigo)),
+                                    )}>
+                                    Quitar {codigo}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </form>
-            <h2>Compras clínicas registradas</h2>
+            <h2 id="historial-compras" className={soloCompras ? 'h4 fw-bold mt-4 mb-3' : undefined}>
+                Compras clínicas registradas
+            </h2>
             {compras.map((compra) => (
                 <article className="perfil-tarjeta mb-2" key={compra.id}>
                     <h3>
@@ -422,9 +492,9 @@ export default function ClinicaAdministrador() {
                     </p>
                     <details>
                         <summary>Ver detalle</summary>
-                        {compra.detalles.map((detalle, indice) => (
-                            <p key={indice}>
-                                {detalle.nombreProducto} × {detalle.cantidad}
+                        {compra.detalles.map((detalle) => (
+                            <p key={detalle.id}>
+                                {detalle.nombreComercial} × {detalle.cantidad}
                             </p>
                         ))}
                     </details>
@@ -446,7 +516,7 @@ export default function ClinicaAdministrador() {
                             Marcar entregada
                         </button>
                     )}
-                    {compra.estado !== 'CANCELADA' && (
+                    {!soloCompras && compra.estado !== 'CANCELADA' && (
                         <button
                             className="btn btn-outline-danger"
                             disabled={ocupado}

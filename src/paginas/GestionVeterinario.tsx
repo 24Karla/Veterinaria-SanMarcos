@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import EstadoApi from '../componentes/moleculas/EstadoApi';
 import {
     api,
+    estadosCita,
+    fechaClinica,
     mostrarErrorFormulario,
     pedirDatos,
     mensajeError,
@@ -13,40 +15,41 @@ import {
     type MascotaApi,
     type UsuarioApi,
 } from '../servicios/api';
+import { useCitasActualizadas } from '../servicios/useCitasActualizadas';
+import { normalizarBusqueda } from '../servicios/busqueda';
 
 export function AgendaVeterinario() {
     const nombre = obtenerSesion()?.nombre;
-    const [citas, setCitas] = useState<CitaApi[]>([]);
-    const [cargando, setCargando] = useState(true);
     const [error, setError] = useState('');
     const [ocupado, setOcupado] = useState(false);
-    useEffect(() => {
-        pedirDatos<CitaApi[]>(`${api.agenda}/api/citas`)
-            .then((citas) =>
-                setCitas(citas.filter((cita) => cita.veterinario === nombre)),
-            )
-            .catch((error) => setError(mensajeError(error)))
-            .finally(() => setCargando(false));
-    }, [nombre]);
+    const [busqueda, setBusqueda] = useState('');
+    const { citas, cargando, errorAgenda, actualizarCita } = useCitasActualizadas(ocupado);
+    const hoy = fechaClinica();
 
-    async function atender(id: number) {
+    async function cambiarEstadoCita(id: number, accion: 'llamar' | 'atendida') {
         if (ocupado) return;
         setOcupado(true);
         setError('');
         try {
             const cita = await pedirDatos<CitaApi>(
-                `${api.agenda}/api/citas/${id}/atendida`,
+                `${api.agenda}/api/citas/${id}/${accion}`,
                 { method: 'PUT' },
             );
-            setCitas((actuales) =>
-                actuales.map((actual) => (actual.id === id ? cita : actual)),
-            );
+            actualizarCita(cita);
         } catch (error) {
             mostrarErrorFormulario(error, setError);
         } finally {
             setOcupado(false);
         }
     }
+
+    const filtro = normalizarBusqueda(busqueda);
+    const citasOrdenadas = citas.filter((cita) =>
+        cita.veterinario === nombre &&
+        [cita.dueno, cita.mascota].some((dato) => normalizarBusqueda(dato).includes(filtro)),
+    ).sort(
+        (primera, segunda) => Number(segunda.estado === 'EN_ESPERA') - Number(primera.estado === 'EN_ESPERA'),
+    );
 
     return (
         <main className="container panel-perfil">
@@ -58,12 +61,26 @@ export function AgendaVeterinario() {
                 <h1>Mi agenda</h1>
                 <p>Citas agendadas para tu jornada de atención.</p>
             </header>
+            <div className="perfil-tarjeta agenda-formulario mb-4">
+                <div>
+                    <label htmlFor="buscar-citas-vet" className="form-label">Buscar en mis citas</label>
+                    <input
+                        id="buscar-citas-vet"
+                        className="form-control"
+                        type="search"
+                        placeholder="Nombre del cliente o de la mascota"
+                        value={busqueda}
+                        onChange={(event) => setBusqueda(event.target.value)}
+                    />
+                </div>
+            </div>
             <EstadoApi cargando={cargando} error={error} />
-            {!cargando && !error && citas.length === 0 && (
-                <p>No tienes citas asignadas.</p>
+            <EstadoApi cargando={false} error={errorAgenda} />
+            {!cargando && !errorAgenda && citasOrdenadas.length === 0 && (
+                <p>{filtro ? 'No hay citas asignadas que coincidan con la búsqueda.' : 'No tienes citas asignadas.'}</p>
             )}
             <section className="lista-registros">
-                {citas.map((cita) => (
+                {citasOrdenadas.map((cita) => (
                     <article className="registro-cita" key={cita.id}>
                         <img
                             className="registro-imagen"
@@ -76,16 +93,25 @@ export function AgendaVeterinario() {
                             </h2>
                             <p>
                                 {cita.fecha} · {cita.hora.slice(0, 5)} · {cita.dueno} ·{' '}
-                                {cita.estado}
+                                <strong>{estadosCita[cita.estado]}</strong>
                             </p>
                             <p>{cita.motivo}</p>
                         </div>
                         <div className="acciones-registro">
-                            {cita.estado === 'RESERVADA' && (
+                            {cita.estado === 'EN_ESPERA' && (
                                 <button
                                     className="btn btn-tienda me-2"
                                     disabled={ocupado}
-                                    onClick={() => atender(cita.id)}
+                                    onClick={() => cambiarEstadoCita(cita.id, 'llamar')}
+                                >
+                                    Llamar paciente
+                                </button>
+                            )}
+                            {(cita.estado === 'EN_ATENCION' || (cita.estado === 'RESERVADA' && cita.fecha < hoy)) && (
+                                <button
+                                    className="btn btn-tienda me-2"
+                                    disabled={ocupado}
+                                    onClick={() => cambiarEstadoCita(cita.id, 'atendida')}
                                 >
                                     Marcar atendida
                                 </button>
