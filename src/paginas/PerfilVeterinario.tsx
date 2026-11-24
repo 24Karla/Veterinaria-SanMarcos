@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import EstadoApi from '../componentes/moleculas/EstadoApi';
 import {
     api,
+    estadosCita,
+    fechaClinica,
     pedirDatos,
     mensajeError,
     obtenerSesion,
-    type CitaApi,
     type ConsultaApi,
 } from '../servicios/api';
+import { useCitasActualizadas } from '../servicios/useCitasActualizadas';
 
 interface Props {
     sesion: { nombre: string; correo: string };
@@ -16,32 +18,25 @@ interface Props {
 
 export default function PerfilVeterinario({ sesion }: Props) {
     const id = obtenerSesion()?.id;
-    const [citas, setCitas] = useState<CitaApi[]>([]);
+    const agenda = useCitasActualizadas(!id);
     const [consultas, setConsultas] = useState<ConsultaApi[]>([]);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState('');
     useEffect(() => {
         if (!id) return;
-        Promise.all([
-            pedirDatos<CitaApi[]>(`${api.agenda}/api/citas`),
-            pedirDatos<ConsultaApi[]>(`${api.ficha}/api/consultas?veterinarioId=${id}`),
-        ])
-            .then(([citas, consultas]) => {
-                setCitas(
-                    citas.filter(
-                        (cita) =>
-                            cita.veterinario === sesion.nombre &&
-                            cita.estado === 'RESERVADA',
-                    ),
-                );
-                setConsultas(consultas);
-            })
+        pedirDatos<ConsultaApi[]>(`${api.ficha}/api/consultas?veterinarioId=${id}`)
+            .then(setConsultas)
             .catch((error) => setError(mensajeError(error)))
             .finally(() => setCargando(false));
-    }, [id, sesion.nombre]);
+    }, [id]);
 
-    const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
+    const citas = agenda.citas.filter((cita) =>
+        cita.veterinario === sesion.nombre &&
+        ['RESERVADA', 'EN_ESPERA', 'EN_ATENCION'].includes(cita.estado),
+    );
+    const hoy = fechaClinica();
     const citasHoy = citas.filter((cita) => cita.fecha === hoy);
+    const pacientesEnEspera = citasHoy.filter((cita) => cita.estado === 'EN_ESPERA').length;
     const proximaCita = citasHoy.toSorted((a, b) => a.hora.localeCompare(b.hora))[0];
 
     return (
@@ -53,13 +48,14 @@ export default function PerfilVeterinario({ sesion }: Props) {
             </header>
 
             <EstadoApi cargando={cargando} error={error} />
+            <EstadoApi cargando={false} error={agenda.errorAgenda} />
 
             <section className="perfil-grid">
                 <article className="perfil-tarjeta perfil-tarjeta-destacada">
                     <div>
                         <h2>Mi jornada</h2>
                         <p>
-                            <strong>{cargando || error ? '—' : citasHoy.length}</strong>{' '}
+                            <strong>{agenda.cargando || agenda.errorAgenda ? '—' : citasHoy.length}</strong>{' '}
                             citas agendadas para hoy
                         </p>
                         <p>
@@ -68,6 +64,11 @@ export default function PerfilVeterinario({ sesion }: Props) {
                                 : 'Consulta tus horarios en la agenda.'}
                         </p>
                     </div>
+                    {pacientesEnEspera > 0 && (
+                        <p role="status" className="fw-bold">
+                            {pacientesEnEspera} {pacientesEnEspera === 1 ? 'paciente en sala de espera' : 'pacientes en sala de espera'}
+                        </p>
+                    )}
                     <Link className="btn btn-tienda" to="/perfil/veterinario/agenda">
                         Ver agenda
                     </Link>
@@ -84,11 +85,11 @@ export default function PerfilVeterinario({ sesion }: Props) {
                                     {cita.hora.slice(0, 5)} · {cita.mascota}
                                 </strong>
                                 <span>
-                                    {cita.motivo} · {cita.fecha}
+                                    {cita.motivo} · {cita.fecha} · {estadosCita[cita.estado]}
                                 </span>
                             </div>
                         ))}
-                        {!cargando && !error && citas.length === 0 && (
+                        {!agenda.cargando && !agenda.errorAgenda && citas.length === 0 && (
                             <p>No hay citas agendadas.</p>
                         )}
                     </div>

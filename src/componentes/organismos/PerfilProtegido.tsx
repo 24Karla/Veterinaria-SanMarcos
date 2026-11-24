@@ -6,6 +6,7 @@ import { Navigate } from 'react-router-dom';
 export type RolUsuario =
     | 'cliente'
     | 'veterinario'
+    | 'recepcionista'
     | 'administrador';
 
 export interface SesionUsuario {

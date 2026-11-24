@@ -126,6 +126,26 @@ export interface CitaApi {
     estado: string;
 }
 
+export const estadosCita: Record<string, string> = {
+    RESERVADA: 'Reservada',
+    EN_ESPERA: 'En sala de espera',
+    EN_ATENCION: 'En atención',
+    ATENDIDA: 'Atendida',
+    CANCELADA: 'Cancelada',
+};
+
+export function reprogramarCita(cita: CitaApi, horarioId: number) {
+    const { dueno, correo, mascota, especie, servicio, motivo } = cita;
+    return pedirDatos<CitaApi>(`${api.agenda}/api/citas/${cita.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ horarioId, dueno, correo, mascota, especie, servicio, motivo }),
+    });
+}
+
+export function fechaClinica() {
+    return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Santiago' });
+}
+
 export interface PedidoApi {
     id: number;
     nombreCompleto: string;
@@ -142,6 +162,15 @@ export interface PedidoApi {
         precioUnitario: number;
         subtotal: number;
     }[];
+}
+
+export interface CompraClinicaApi {
+    id: number;
+    nombreDueno: string;
+    fechaCompra: string;
+    totalClp: number;
+    estado: string;
+    detalles: { id: number; nombreComercial: string; cantidad: number }[];
 }
 
 export interface ConsultaApi {

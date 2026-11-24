@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import EstadoApi from '../componentes/moleculas/EstadoApi';
 import {
     api,
+    estadosCita,
     mostrarErrorFormulario,
     pedirDatos,
     mensajeError,
     obtenerSesion,
+    reprogramarCita,
     type CitaApi,
     type HorarioApi,
 } from '../servicios/api';
@@ -66,21 +68,7 @@ export default function MisCitas() {
         setOcupado(true);
         setError('');
         try {
-            const actualizada = await pedirDatos<CitaApi>(
-                `${api.agenda}/api/citas/${cita.id}`,
-                {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        horarioId: Number(horarioId),
-                        dueno: cita.dueno,
-                        correo: cita.correo,
-                        mascota: cita.mascota,
-                        especie: cita.especie,
-                        servicio: cita.servicio,
-                        motivo: cita.motivo,
-                    }),
-                },
-            );
+            const actualizada = await reprogramarCita(cita, Number(horarioId));
             setCitas((actuales) =>
                 actuales.map((actual) => (actual.id === cita.id ? actualizada : actual)),
             );
@@ -146,7 +134,7 @@ export default function MisCitas() {
                                     ? 'Próxima cita'
                                     : cita.estado === 'ATENDIDA'
                                       ? 'Realizada'
-                                      : cita.estado}
+                                      : estadosCita[cita.estado] ?? cita.estado}
                             </span>
                             <h2>
                                 {cita.motivo} · {cita.mascota}

@@ -180,12 +180,48 @@ test('el ingreso opcional vuelve a la reserva y conserva los datos de la mascota
         expect(screen.getByRole('heading', { name: 'Reservar cita' })).toBeTruthy(),
     );
     expect(
-        (screen.getByLabelText('Nombre de la mascota') as HTMLInputElement).value,
+        (await screen.findByLabelText<HTMLInputElement>('Nombre de la mascota')).value,
     ).toBe('Luna');
     expect(
         (screen.getByLabelText('Motivo de consulta') as HTMLTextAreaElement).value,
     ).toBe('Motivo conservado');
     expect(screen.getByText('Servicio seleccionado: Consulta general')).toBeTruthy();
+});
+
+test('la cuenta cliente puede reservar para una de sus mascotas inscritas', async () => {
+    localStorage.setItem('sesion-veterinaria', JSON.stringify(sesion));
+    const fetchSimulado = vi.fn(async (url: string, opciones?: RequestInit) => {
+        if (url.endsWith('/api/mascotas?clienteId=4')) {
+            return Response.json([
+                { id: 6, clienteId: 4, nombre: 'Luna', especie: 'GATO', activo: true },
+                { id: 7, clienteId: 4, nombre: 'Boby', especie: 'PERRO', activo: false },
+                { id: 8, clienteId: 5, nombre: 'Toby', especie: 'PERRO', activo: true },
+            ]);
+        }
+        if (opciones?.method === 'POST') return Response.json({ id: 50, mascota: 'Luna', ...horario });
+        return Response.json([horario]);
+    });
+    vi.stubGlobal('fetch', fetchSimulado);
+    abrir('/tienda?pagina=cita');
+
+    const desplegable = await screen.findByLabelText('Mascotas inscritas');
+    expect(screen.queryByRole('option', { name: 'Boby' })).toBeNull();
+    expect(screen.queryByRole('option', { name: 'Toby' })).toBeNull();
+    fireEvent.change(desplegable, { target: { value: '6' } });
+    fireEvent.change(screen.getByLabelText('Fecha'), { target: { value: horario.fecha } });
+    await screen.findByRole('option', { name: '10:00 · Fabián Gómez' });
+    fireEvent.change(screen.getByLabelText('Hora'), { target: { value: '42' } });
+    fireEvent.change(screen.getByLabelText('Motivo de consulta'), { target: { value: 'Control' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Reservar cita' }));
+
+    expect(await screen.findByRole('heading', { name: '¡Cita reservada!' })).toBeTruthy();
+    expect(fetchSimulado).toHaveBeenCalledWith(
+        expect.stringContaining('/api/citas'),
+        expect.objectContaining({
+            method: 'POST',
+            body: expect.stringContaining('"mascota":"Luna","especie":"GATO"'),
+        }),
+    );
 });
 
 test('crear cuenta desde la reserva abre directamente el formulario de registro', async () => {

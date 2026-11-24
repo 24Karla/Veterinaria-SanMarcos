@@ -4,7 +4,7 @@ import ClinicaAdministrador from './paginas/ClinicaAdministrador';
 import { obtenerSesion } from './servicios/api';
 
 import { useEffect, useState, type FormEvent } from 'react';
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import Footer from './componentes/organismos/Footer';
 import Navbar from './componentes/organismos/Navbar';
@@ -34,6 +34,9 @@ import Login from './paginas/Login';
 import MisCitas from './paginas/MisCitas';
 import PerfilAdministrador from './paginas/PerfilAdministrador';
 import PerfilCliente from './paginas/PerfilCliente';
+import PerfilRecepcionista from './paginas/PerfilRecepcionista';
+import ClientesRecepcion from './paginas/ClientesRecepcion';
+import ReservarCita from './paginas/ReservarCita';
 import PerfilVeterinario from './paginas/PerfilVeterinario';
 import ProductosInventario from './paginas/ProductosInventario';
 import Tienda from './paginas/Tienda';
@@ -45,6 +48,7 @@ import Equipo from './paginas/Equipo';
 
 function App() {
     const ubicacion = useLocation();
+    const navegar = useNavigate();
     const regreso = ubicacion.state?.volverA;
     const volverAlFormulario =
         typeof regreso === 'string' &&
@@ -163,7 +167,11 @@ function App() {
                         element={
                             sesion ? (
                                 <Navigate
-                                    to={volverAlFormulario || rutasPerfil[sesion.rol]}
+                                    to={
+                                        sesion.rol === 'recepcionista'
+                                            ? rutasPerfil.recepcionista
+                                            : volverAlFormulario || rutasPerfil[sesion.rol]
+                                    }
                                     replace
                                 />
                             ) : (
@@ -293,6 +301,44 @@ function App() {
                         element={
                             <PerfilProtegido sesion={sesion} rol="administrador">
                                 {() => <UsuariosAdministrador />}
+                            </PerfilProtegido>
+                        }
+                    />
+                    <Route
+                        path={rutasPerfil.recepcionista}
+                        element={
+                            <PerfilProtegido sesion={sesion} rol="recepcionista">
+                                {(usuario) => <PerfilRecepcionista sesion={usuario} />}
+                            </PerfilProtegido>
+                        }
+                    />
+                    <Route
+                        path={`${rutasPerfil.recepcionista}/reservar`}
+                        element={
+                            <PerfilProtegido sesion={sesion} rol="recepcionista">
+                                {() => (
+                                    <ReservarCita
+                                        paraCliente
+                                        textoVolver="Volver a mi perfil"
+                                        onVolver={() => navegar(rutasPerfil.recepcionista)}
+                                    />
+                                )}
+                            </PerfilProtegido>
+                        }
+                    />
+                    <Route
+                        path={`${rutasPerfil.recepcionista}/clientes`}
+                        element={
+                            <PerfilProtegido sesion={sesion} rol="recepcionista">
+                                {() => <ClientesRecepcion />}
+                            </PerfilProtegido>
+                        }
+                    />
+                    <Route
+                        path={`${rutasPerfil.recepcionista}/compras`}
+                        element={
+                            <PerfilProtegido sesion={sesion} rol="recepcionista">
+                                {() => <ClinicaAdministrador soloCompras />}
                             </PerfilProtegido>
                         }
                     />
