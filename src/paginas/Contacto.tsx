@@ -1,4 +1,5 @@
 import FormularioContacto from '../componentes/organismos/FormularioContacto';
+import { horarioAtencion } from '../servicios/horarioAtencion';
 
 export default function PaginaContacto() {
   return (
@@ -37,8 +38,9 @@ export default function PaginaContacto() {
 
               <div className="mb-3">
                 <strong>⏰ Horarios:</strong>
-                <p className="mb-1 text-white-50">Lunes a Viernes: 13:30 - 19:30 hrs</p>
-                <p className="mb-0 text-white-50">Sábados: 09:00 - 13:00 hrs</p>
+                {horarioAtencion.map((horario) => (
+                  <p className="mb-1 text-white-50" key={horario}>{horario}</p>
+                ))}
               </div>
             </div>
 
